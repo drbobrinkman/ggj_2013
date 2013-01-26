@@ -1,0 +1,693 @@
+;------------------------------------------------
+;
+; untitled
+; Atari VCS Game 
+; Created by Bo Brinkman on 2011-09-20.
+;
+; Logo (c) 2011 __EyeWOL__. All rights reserved.
+;
+; Use with joystick controllers
+;
+;------------------------------------------------
+	processor 	6502
+	include 	vcs.h
+	include 	macro.h
+
+;------------------------------------------------
+; Constants
+;------------------------------------------------
+BLACK = #$00
+HMOVE_L7          =  $70
+HMOVE_L6          =  $60
+HMOVE_L5          =  $50
+HMOVE_L4          =  $40
+HMOVE_L3          =  $30
+HMOVE_L2          =  $20
+HMOVE_L1          =  $10
+HMOVE_0           =  $00
+HMOVE_R1          =  $F0
+HMOVE_R2          =  $E0
+HMOVE_R3          =  $D0
+HMOVE_R4          =  $C0
+HMOVE_R5          =  $B0
+HMOVE_R6          =  $A0
+HMOVE_R7          =  $90
+HMOVE_R8          =  $80
+
+LOGO_COLOR     = $40
+BG_COLOR 	   = $42
+
+; values for NUSIZx:
+ONE_COPY          = %000
+TWO_COPIES        = %001
+TWO_WIDE_COPIES   = %010
+THREE_COPIES      = %011 
+DOUBLE_SIZE       = %101 
+THREE_MED_COPIES  = %110 
+QUAD_SIZE         = %111
+
+; values for REFPx:
+NO_REFLECT        = %0000
+REFLECT           = %1000
+
+; mask for SWCHB
+P1_DIFF_MASK      = %10000000
+BW_MASK           = %00001000       ; black and white bit
+SELECT_MASK       = %00000010
+RESET_MASK        = %00000001
+
+;Height of the image to display
+H_LOGO    = 55
+
+;How often to advance the note counter
+TICKS_PER_NOTE = 10
+
+
+NOTE_E = 23
+;NOTE_F = 20
+NOTE_G = 19
+NOTE_GS = 18
+NOTE_A = 17
+NOTE_B = 15
+NOTE_C = 14
+NOTE_D = 12
+NOTE_E2 = 11
+NOTE_D2 = 26
+
+;These notes signal the start of a note
+NOTEA_E = 23+32
+;NOTEA_F = 20+32
+NOTEA_G = 19+32
+NOTEA_GS = 18+32
+NOTEA_A = 17+32
+NOTEA_B = 15+32
+NOTEA_C = 14+32
+NOTEA_D = 12+32
+NOTEA_E2 = 11+32
+NOTEA_D2 = 26+32
+
+;------------------------------------------------
+; RAM
+;------------------------------------------------
+    SEG.U   variables
+    ORG     $80
+
+color .byte
+freq  .byte
+volume .byte
+ticks .byte
+note  .byte
+looper .byte
+
+;------------------------------------------------
+; Start of ROM
+;------------------------------------------------
+	SEG   Bank0
+	ORG   $F000       	; 4k ROM start point
+
+Start 
+	CLEAN_START			; Clear RAM and Registers
+	
+	;          ; 3 = @24						
+	
+;------------------------------------------------
+; Vertical Blank
+;------------------------------------------------
+MainLoop
+	lda		#0		;Start the vertical blank
+	sta		VBLANK
+	VERTICAL_SYNC
+    lda     #43
+    sta     TIM64T ;This sets a timer that we can check via INTIM
+
+	;***** Vertical Blank code goes here
+	
+	lda		#$5f
+	sta		COLUBK
+	
+.waitForVBlank
+	lda		INTIM
+	bne		.waitForVBlank
+	
+ 	
+	
+	sta		WSYNC
+
+
+;------------------------------------------------
+; Kernel
+;------------------------------------------------	
+DrawScreen
+	
+;--Burn the top whitespace	
+	;Image is 55 tall, 32 wide. Center it vertically... Pixel aspect ration is 12:7
+	ldx		#193		; Kernel goes here. Last 8 scanlines are for logo and status	
+.scanline
+	
+	dex
+	sta		WSYNC
+	bne		.scanline 		
+		
+		
+;------------------------------------------------
+; Overscan
+;------------------------------------------------
+	lda		#%01000010
+	sta		VBLANK
+    lda		#36
+    sta		TIM64T
+
+	;***** Overscan Code goes here
+	lda #$00
+	sta COLUBK
+	sta COLUPF
+	
+.waitForOverscan
+	lda     INTIM
+	bne     .waitForOverscan
+
+	jmp		MainLoop
+
+;------------------------------------------------
+; ROM Tables
+;------------------------------------------------
+	;***** ROM tables go here
+	
+	ORG $FC00
+song
+	.byte NOTEA_C
+	.byte NOTE_C
+	.byte NOTE_C
+	.byte NOTEA_C
+	
+	.byte NOTEA_B
+	.byte NOTEA_C
+	.byte NOTEA_B
+	.byte NOTEA_C
+	
+	.byte NOTEA_B
+	.byte NOTE_B
+	.byte NOTE_B
+	.byte NOTE_B
+	
+	.byte NOTEA_A
+	.byte NOTE_A
+	.byte NOTE_A
+	.byte NOTEA_E
+	
+	.byte NOTEA_G
+	.byte NOTE_G
+	.byte NOTEA_A
+	.byte NOTE_A
+	
+	;--end line 1
+	
+	.byte NOTEA_B
+	.byte NOTE_B
+	.byte NOTEA_C
+	.byte NOTE_C
+	
+	.byte NOTEA_B
+	.byte NOTE_B
+	.byte NOTE_B
+	.byte NOTE_B
+	
+	.byte NOTE_B
+	.byte NOTE_B
+	.byte NOTE_B
+	.byte NOTE_B
+	
+	.byte NOTEA_C 
+	.byte NOTE_C 
+	.byte NOTE_C 
+	.byte NOTEA_C 
+	
+	.byte NOTEA_B
+	.byte NOTEA_C
+	.byte NOTEA_B
+	.byte NOTEA_C
+	
+	;--end line 2	
+	.byte NOTEA_B
+	.byte NOTE_B
+	.byte NOTE_B
+	.byte NOTE_B
+	
+	.byte NOTEA_D2
+	.byte NOTE_D2
+	.byte NOTE_D2
+	.byte NOTE_D2
+	
+	.byte NOTEA_D2
+	.byte NOTE_D2
+	.byte NOTEA_G
+	.byte NOTE_G
+	
+	.byte NOTEA_A
+	.byte NOTE_A
+	.byte NOTEA_B
+	.byte NOTE_B
+	
+	.byte NOTEA_G
+	.byte NOTE_G
+	.byte NOTE_G
+	.byte NOTE_G
+	
+	.byte NOTE_G
+	.byte NOTE_G
+	.byte NOTE_G
+	.byte NOTE_G
+	;--end line 3 (page 1)
+	
+	.byte NOTEA_C 
+	.byte NOTE_C 
+	.byte NOTE_C 
+	.byte NOTEA_C 
+	
+	.byte NOTEA_B
+	.byte NOTEA_C
+	.byte NOTEA_B
+	.byte NOTEA_C
+	
+	.byte NOTEA_B
+	.byte NOTE_B
+	.byte NOTE_B
+	.byte NOTE_B
+	
+	.byte NOTEA_A
+	.byte NOTE_A
+	.byte NOTE_A
+	.byte NOTEA_G
+	
+	.byte NOTEA_C 
+	.byte NOTE_C 
+	.byte NOTEA_C 
+	.byte NOTE_C
+	;--end line 4
+	.byte NOTEA_E 
+	.byte NOTE_E 
+	.byte NOTEA_C 
+	.byte NOTE_C
+	
+	.byte NOTEA_A
+	.byte NOTE_A
+	.byte NOTE_A
+	.byte NOTE_A
+
+	.byte NOTE_A
+	.byte NOTE_A
+	.byte NOTE_A
+	.byte NOTE_A
+	
+	.byte NOTEA_C 
+	.byte NOTE_C 
+	.byte NOTE_C 
+	.byte NOTEA_C
+	
+	.byte NOTEA_D 
+	.byte NOTEA_C 
+	.byte NOTEA_B 
+	.byte NOTEA_C
+	;--end line 5
+	.byte NOTEA_E2 
+	.byte NOTE_E2
+	.byte NOTE_E2
+	.byte NOTE_E2
+	
+	.byte NOTEA_G
+	.byte NOTE_G
+	.byte NOTE_G
+	.byte NOTEA_GS
+	
+	.byte NOTEA_A
+	.byte NOTEA_A
+	.byte NOTE_A
+	.byte NOTE_A
+	
+	.byte NOTEA_B
+	.byte NOTE_B
+	.byte NOTEA_B
+	.byte NOTE_B
+	
+	.byte NOTEA_C 
+	.byte NOTE_C 
+	.byte NOTE_C 
+	.byte NOTE_C
+	
+	;--Placeholder for 4 measures of rest
+	.byte NOTE_C 
+	.byte NOTE_C 
+	.byte NOTE_C 
+	.byte NOTE_C
+	
+	.byte NOTE_C 
+	.byte NOTE_C 
+	.byte NOTE_C 
+	.byte NOTE_C
+	
+	.byte NOTE_C 
+	.byte NOTE_C 
+	.byte NOTE_C 
+	.byte NOTE_C
+	
+	.byte NOTE_C 
+	.byte NOTE_C 
+	.byte NOTE_C 
+	.byte NOTE_C
+	
+	;--ROM page for Playfield chevron
+	ORG $FD00
+play0 ;-- for PF0, 4 least significant bits are used
+	.byte %00001111
+	.byte %00000111
+	.byte %00000011
+	.byte %00000001
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %10000000
+	.byte %11000000
+	.byte %11100000
+	.byte %11110000
+	.byte %11111000
+	.byte %11111100
+	.byte %11111110
+	.byte %11111111
+	.byte %11111111	
+	.byte %11111111
+	.byte %11111111
+	.byte %11111111	
+	.byte %11111111	
+	.byte %11111111	
+	.byte %01111111
+	.byte %00111111
+	.byte %00011111
+
+					
+play1 ;-- for PF1. All 8 bits used, but REVERSE ORDER
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000001
+	.byte %00000011
+	.byte %00000111
+	.byte %00001111
+	.byte %00011111
+	.byte %00111111
+	.byte %01111111
+	.byte %11111111
+	.byte %11111111	
+	.byte %11111111
+	.byte %11111111
+	.byte %11111111	
+	.byte %11111111
+	.byte %11111111	
+	.byte %11111110
+	.byte %11111100
+	.byte %11111000
+	.byte %11110000
+	.byte %11100000
+	.byte %11000000
+	.byte %10000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+
+
+			
+play2 ;-- for PF2. All 8 bits used, in regular order
+	.byte %11111100
+	.byte %11111110
+	.byte %11111111
+	.byte %11111111	
+	.byte %11111111
+	.byte %11111111
+	.byte %11111111	
+	.byte %11111111	
+	.byte %11111111	
+	.byte %01111111
+	.byte %00111111
+	.byte %00011111
+	.byte %00001111
+	.byte %00000111
+	.byte %00000011
+	.byte %00000001
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %10000000
+	.byte %11000000
+	.byte %11100000
+	.byte %11110000
+	.byte %11111000
+
+	
+	
+	;--Logo is 55*4 = 220 bytes, so give it its own page
+	ORG $FE00
+Logo0
+	   .byte %10001010
+	   .byte %10001010
+	   .byte %10101011
+	   .byte %11011010
+	   .byte %10001011 ;May 2013
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %00001110 ;Studio
+	   .byte %00000010
+	   .byte %00001110
+	   .byte %00001000
+	   .byte %00001110
+	   .byte %00000000
+	   .byte %10001101 ;Platform
+	   .byte %10001001
+	   .byte %11101001
+	   .byte %10101001
+	   .byte %11101001
+	   .byte %00000000
+	   .byte %00000010 ;Atari
+	   .byte %00000010
+	   .byte %00000011
+	   .byte %00000010
+	   .byte %00000011
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %01110111 ;CSE 270B
+	   .byte %01000001
+	   .byte %01000111
+	   .byte %01000100
+	   .byte %01110111
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %00000000 ;Beveled M
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %00000000 ;End beveled M
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %00000000
+	   .byte %01000101 ;Miami OH
+	   .byte %01000101
+	   .byte %01010101
+	   .byte %01101101
+	   .byte %01000101
+	
+Logo1
+	.byte %10010001
+	.byte %10010001
+	.byte %10101001
+	.byte %10101000
+	.byte %10101001 ;May 2013
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %01001110 ;Studio
+	.byte %01001010
+	.byte %01001010
+	.byte %01001010
+	.byte %11101010
+	.byte %00000000
+	.byte %01001001 ;Platform
+	.byte %01001001
+	.byte %11001001
+	.byte %01001001
+	.byte %11011101
+	.byte %00000000
+	.byte %10010010 ;Atari
+	.byte %10010010
+	.byte %10010011
+	.byte %10010010
+	.byte %10111011
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %01110011 ;CSE 270B
+	.byte %01000010
+	.byte %01100011
+	.byte %01000000
+	.byte %01110011
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %01111000 ;Beveled M
+	.byte %00110000
+	.byte %00010000
+	.byte %00010010
+	.byte %00010010
+	.byte %00010111
+	.byte %00010101
+	.byte %00011101
+	.byte %00011000
+	.byte %00111000
+	.byte %01110000 ;End beveled M
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %01010100 ;Miami OH
+	.byte %01010100
+	.byte %01110101
+	.byte %01010110
+	.byte %01110100
+	
+Logo2
+	.byte %11011101
+	.byte %00010100
+	.byte %11010100
+	.byte %01010101
+	.byte %11011100 ;May 2013
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %11001110 ;Studio
+	.byte %10100100
+	.byte %10100100
+	.byte %10100100
+	.byte %11001110
+	.byte %00000000
+	.byte %00011101 ;Platform
+	.byte %00010101
+	.byte %10010101
+	.byte %00010101
+	.byte %11011101
+	.byte %00000000
+	.byte %10101011 ;Atari
+	.byte %10101001
+	.byte %10110001
+	.byte %10101001
+	.byte %10111011
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %10001011 ;CSE 270B
+	.byte %00001010
+	.byte %10001010
+	.byte %10001010
+	.byte %10111011
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %11110000 ;Beveled M
+	.byte %01100000
+	.byte %01000000
+	.byte %01000000
+	.byte %01000000
+	.byte %01000000
+	.byte %01000000
+	.byte %11000000
+	.byte %11000000
+	.byte %11100000
+	.byte %01110000 ;End beveled M
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %01010001 ;Miami OH
+	.byte %01010001
+	.byte %01010001
+	.byte %11010001
+	.byte %01010001
+	
+Logo3
+	.byte %11011101
+	.byte %10000100
+	.byte %10001101
+	.byte %10000101
+	.byte %10011101 ;May 2013
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %11100000 ;Studio
+	.byte %10100000
+	.byte %10100000
+	.byte %10100000
+	.byte %11100000
+	.byte %00000000
+	.byte %01010001 ;Platform
+	.byte %01010001
+	.byte %10010101
+	.byte %01011011
+	.byte %11010001
+	.byte %00000000
+	.byte %10000000 ;Atari
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %10000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %10111000 ;CSE 270B
+	.byte %10101000
+	.byte %10110000
+	.byte %10101000
+	.byte %10111000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000 ;Beveled M
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000 ;End beveled M
+	.byte %00000000
+	.byte %00000000
+	.byte %00000000
+	.byte %11010100 ;Miami OH
+	.byte %01010100
+	.byte %01011100
+	.byte %01010100
+	.byte %11010100
+;------------------------------------------------
+; Interrupt Vectors
+;------------------------------------------------
+	echo [*-$F000]d, " ROM bytes used"
+	ORG    $FFFA
+	.word  Start         ; NMI
+	.word  Start         ; RESET
+	.word  Start         ; IRQ
+    
+	END
