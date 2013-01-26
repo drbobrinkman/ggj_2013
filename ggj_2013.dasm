@@ -87,8 +87,8 @@ pfLt  .byte
 autoX .byte
 autoY .byte
 
-joyX  .byte
-joyY  .byte
+;joyX  .byte
+;joyY  .byte
 
 plrX  .byte
 plrY  .byte
@@ -135,11 +135,16 @@ Start
 	
 	;Initialize player to center of the screen
 	lda		#18
-	sta		joyX
+	;sta		joyX
 	sta		tgtCol
 	lda		#18
-	sta		joyY
+	;sta		joyY
 	sta		tgtRow
+	
+	lda     #76
+	sta		plrX
+	lda		#92
+	sta		plrY
 	
 	lda		#$FF
 	sta		GRP0
@@ -210,59 +215,59 @@ MainLoop
 	sta		AUDV0
 	
 ;*** Read the joystick
-	lda 	#P0_LEFT_MASK
+	lda 	#P0_RIGHT_MASK
 	bit		SWCHA
 	bne		.notRight
 	
-	lda		joyX
-	cmp		#36	
+	lda		plrX
+	cmp		#112	
 	beq		.notRight
-	adc		#1
-	sta		joyX
+	adc		#2
+	sta		plrX
 	
 .notRight
-	lda		#P0_RIGHT_MASK
+	lda		#P0_LEFT_MASK
 	bit		SWCHA
 	bne		.notLeft
 	
-	lda		joyX
-	cmp		#0
+	lda		plrX
+	cmp		#40
 	beq		.notLeft
-	sbc		#1
-	sta		joyX
+	sbc		#2
+	sta		plrX
 .notLeft
 	
 	
-	lda 	#P0_DOWN_MASK
+	lda 	#P0_UP_MASK
 	bit		SWCHA
 	bne		.notUp
 
-	lda		joyY
-	cmp		#36	
+	lda		plrY
+	cmp		#164
 	beq		.notUp
-	adc		#1
-	sta		joyY
+	adc		#4
+	sta		plrY
 
 .notUp
-	lda		#P0_UP_MASK
+	lda		#P0_DOWN_MASK
 	bit		SWCHA
 	bne		.notDown
 
-	lda		joyY
-	cmp		#0
+	lda		plrY
+	cmp		#36
 	beq		.notDown
-	sbc		#1
-	sta		joyY
+	sbc		#4
+	sta		plrY
 .notDown
 	
 	
-	ldy		joyX
-	lda		.x_sin_table,y
-	sta		plrX
+	;ldy		joyX
+	;lda		.x_sin_table,y
+	;sta		plrX
 	
-	ldy		joyY
-	lda		.y_cos_table,y
-	sta		plrY
+	;ldy		joyY
+	;lda		.y_cos_table,y
+	;sta		plrY
 	
 	
 	;** Place the player sprite
@@ -288,12 +293,12 @@ MainLoop
 	sta		HMP0			;(3)
 	
 	sta		WSYNC
-	sta		HMOVE
+	;sta		HMOVE
 	
 	;Clear the player1 sprite
 	lda		#0
 	sta		GRP0
-	sta		HMP0
+	;sta		HMP0
 	
 	
 	;** Place the player sprite
@@ -324,7 +329,7 @@ MainLoop
 	;Clear the player1 sprite
 	lda		#0
 	sta		GRP1
-	sta		HMP1	
+	;sta		HMP1	
 	
 	
 	
@@ -358,6 +363,17 @@ MainLoop
 .notCountTime
 	
 	
+	;---Update target position
+	lda		tgtX
+	adc		#1
+	cmp		#112
+	bne		.okCol
+	lda		#40	
+.okCol
+	sta		tgtX
+
+	
+	
 	lda		musicTicks
 	bne		.notAttack ;--Cannot be an attack if it isn't a new count
 	
@@ -374,23 +390,12 @@ MainLoop
 	lda		#$8e
 	sta		COLUP1
 	
-	;---Update target position
-	lda		tgtX
-	adc		#13+36
-.subMoreX
-	sbc		#36
-	cmp		#36
-	bpl		.subMoreX
-	tay
-	lda		.x_sin_table,y
-	sta		tgtX
-	
-	lda		tgtY
-	adc		#17+36
-.subMoreY
-	sbc		#36
-	cmp		#36
-	bpl		.subMoreY
+	lda		tgtRow
+	sbc		#1
+	bpl		.okRow
+	adc		#36
+.okRow
+	sta		tgtRow
 	tay
 	lda		.y_cos_table,y
 	sta		tgtY
