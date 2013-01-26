@@ -93,6 +93,12 @@ NOTEA_D2 = 26+32
     ORG     $80
 
 ticks .byte
+bgDk  .byte
+bgLt  .byte
+pfLt  .byte
+
+plrX  .byte
+plrY  .byte
 
 ;------------------------------------------------
 ; Start of ROM
@@ -104,7 +110,27 @@ Start
 	CLEAN_START			; Clear RAM and Registers
 	
 	lda		#0
-	sta		ticks	;initialize ticks						
+	sta		ticks	;initialize ticks	
+	
+	;Initialize colors	
+	lda 	#$44
+	sta		bgDk
+	lda		#$46
+	sta		bgLt
+	lda		#$4e
+	sta		pfLt
+	
+	lda		#$6C
+	sta		COLUP0
+	
+	;Initialize player to center of the screen
+	lda		#80
+	sta		plrX
+	lda		#96
+	sta		plrY
+	
+	lda		#$FF
+	sta		GRP0
 	
 ;------------------------------------------------
 ; Vertical Blank
@@ -128,6 +154,15 @@ MainLoop
 .noTickReset
 	sta 	ticks
 	
+	;** Place the player sprite
+	sta 	WSYNC
+	lda		plrX
+	sbc		#15
+.pos_loop_plr
+	sbc		#15				;(2)
+	bpl		.pos_loop_plr	;(3)
+	sta		RESP1			;(3)
+		
 .waitForVBlank
 	lda		INTIM
 	bne		.waitForVBlank
@@ -149,10 +184,10 @@ DrawScreen
 
 	beq		.colorLight
 	;**dark
-	lda		#$48
+	lda		bgDk
 	jmp		.colorSet
 .colorLight
-	lda		#$4e
+	lda		bgLt
 .colorSet	
 	sta		COLUBK
 	
