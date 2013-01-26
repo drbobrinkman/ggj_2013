@@ -782,6 +782,11 @@ DrawScreen
 	.byte #$46
 	.byte #$46
 	.byte #$46
+
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
 	
 	.byte #$4a
 	.byte #$4a
@@ -808,25 +813,25 @@ DrawScreen
 	.byte #$48
 	.byte #$48
 	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
 	.byte #$46
 	.byte #$46
 	.byte #$46
 	.byte #$46
 	
-	.byte #$44
-	.byte #$44
-	.byte #$44
-	.byte #$44
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
 	
-	.byte #$44
-	.byte #$44
-	.byte #$44
-	.byte #$44
-	
-	.byte #$44
-	.byte #$44
-	.byte #$44
-	.byte #$44
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
 	
 	.byte #$44
 	.byte #$44
@@ -838,11 +843,6 @@ DrawScreen
 	.byte #$44
 	.byte #$44
 		
-	.byte #$44
-	.byte #$44
-	.byte #$44
-	.byte #$44
-	
 	.byte #$44
 	.byte #$44
 	.byte #$44
