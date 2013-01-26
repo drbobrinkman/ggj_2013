@@ -1,3 +1,3 @@
-My Global Game Jam 2013 game
+Sonogram
 ========
-I have no idea what I'm doing.
+A game about the first time I saw my baby, and heard her soothing heartbeat.

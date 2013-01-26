@@ -92,12 +92,7 @@ NOTEA_D2 = 26+32
     SEG.U   variables
     ORG     $80
 
-color .byte
-freq  .byte
-volume .byte
 ticks .byte
-note  .byte
-looper .byte
 
 ;------------------------------------------------
 ; Start of ROM
@@ -108,7 +103,8 @@ looper .byte
 Start 
 	CLEAN_START			; Clear RAM and Registers
 	
-	;          ; 3 = @24						
+	lda		#0
+	sta		ticks	;initialize ticks						
 	
 ;------------------------------------------------
 ; Vertical Blank
@@ -122,15 +118,19 @@ MainLoop
 
 	;***** Vertical Blank code goes here
 	
-	lda		#$5f
-	sta		COLUBK
+	;** Increment ticks
+	lda		ticks
+	clc
+	adc		#3
+	cmp		#96
+	bne		.noTickReset
+	lda		#0
+.noTickReset
+	sta 	ticks
 	
 .waitForVBlank
 	lda		INTIM
 	bne		.waitForVBlank
-	
- 	
-	
 	sta		WSYNC
 
 
@@ -141,8 +141,14 @@ DrawScreen
 	
 ;--Burn the top whitespace	
 	;Image is 55 tall, 32 wide. Center it vertically... Pixel aspect ration is 12:7
-	ldx		#193		; Kernel goes here. Last 8 scanlines are for logo and status	
+	ldx		#192+1		; Kernel goes here. Last 8 scanlines are for logo and status	
 .scanline
+	txa
+	adc		ticks
+	lsr
+	;and		#$0F
+	;ora		#$40
+	sta		COLUBK
 	
 	dex
 	sta		WSYNC
