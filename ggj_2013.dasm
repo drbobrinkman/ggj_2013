@@ -84,12 +84,6 @@ bgDk  .byte
 bgLt  .byte
 pfLt  .byte
 
-autoX .byte
-autoY .byte
-
-;joyX  .byte
-;joyY  .byte
-
 plrX  .byte
 plrY  .byte
 
@@ -103,8 +97,6 @@ bgIndex .byte
 tgtX	.byte
 tgtY	.byte
 tgtColor .byte
-tgtRow  .byte
-tgtCol  .byte
 
 score   .byte
 
@@ -134,12 +126,10 @@ Start
 	sta		COLUP1
 	
 	;Initialize player to center of the screen
-	lda		#18
-	;sta		joyX
-	sta		tgtCol
-	lda		#18
-	;sta		joyY
-	sta		tgtRow
+	lda		#76
+	sta		tgtX
+	lda		#92
+	sta		tgtY
 	
 	lda     #76
 	sta		plrX
@@ -165,13 +155,6 @@ Start
 	sta		musicTicks
 	sta 	musicCount
 	sta		envelope
-
-	ldy		tgtCol
-	lda		.x_sin_table,y
-	sta		tgtX
-	ldy		tgtRow
-	lda		.y_cos_table,y
-	sta		tgtY
 
 	lda		#15
 	sta		score
@@ -390,15 +373,7 @@ MainLoop
 	lda		#$8e
 	sta		COLUP1
 	
-	lda		tgtRow
-	sbc		#1
-	bpl		.okRow
-	adc		#36
-.okRow
-	sta		tgtRow
-	tay
-	lda		.y_cos_table,y
-	sta		tgtY
+
 	
 	;--Only collision detect on a note attack
 	lda		#%10000000	;--P0 P1 collision
