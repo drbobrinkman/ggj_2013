@@ -166,7 +166,7 @@ MainLoop
 	lda		ticks
 	clc
 	adc		#4
-	cmp		#128
+	cmp		#96
 	bne		.noTickReset
 	lda		#0
 .noTickReset
@@ -192,7 +192,7 @@ MainLoop
 	bne		.notRight
 	
 	lda		joyX
-	cmp		#100	
+	cmp		#96	
 	beq		.notRight
 	adc		#1
 	sta		joyX
@@ -203,7 +203,7 @@ MainLoop
 	bne		.notLeft
 	
 	lda		joyX
-	cmp		#52
+	cmp		#60
 	beq		.notLeft
 	sbc		#1
 	sta		joyX
@@ -215,7 +215,7 @@ MainLoop
 	bne		.notUp
 
 	lda		joyY
-	cmp		#144	
+	cmp		#124	
 	beq		.notUp
 	adc		#2
 	sta		joyY
@@ -226,7 +226,7 @@ MainLoop
 	bne		.notDown
 
 	lda		joyY
-	cmp		#64	
+	cmp		#70	
 	beq		.notDown
 	sbc		#2
 	sta		joyY
@@ -334,16 +334,9 @@ DrawScreen
 	ldx		#192+1		; Kernel goes here. 	
 .scanline
 	txa
-	sbc		ticks
-	and		#64		;Check the 2nd most significant bit
-
-	beq		.colorLight
-	;**dark
-	lda		bgDk
-	jmp		.colorSet
-.colorLight
-	lda		bgLt
-.colorSet	
+	adc		ticks
+	tay
+	lda		.bgcolors,y
 	sta		COLUBK
 	
 	txa
@@ -412,151 +405,150 @@ DrawScreen
 .x_sin_table
 	.byte	#0
 	.byte	#2
-	.byte	#4
-	.byte	#6
-	.byte	#9
+	.byte	#3
+	.byte	#5
+	.byte	#7
+	.byte	#8
+	.byte	#10
 	.byte	#11
 	.byte	#13
 	.byte	#14
+	.byte	#15
 	.byte	#16
+	.byte	#17
 	.byte	#18
 	.byte	#19
+	.byte	#19
 	.byte	#20
-	.byte	#22
-	.byte	#23
-	.byte	#23
-	.byte	#24
-	.byte	#25
-	.byte	#25
-	.byte	#25
-	.byte	#25
-	.byte	#25
-	.byte	#24
-	.byte	#23
-	.byte	#23
-	.byte	#22
+	.byte	#20
+	.byte	#20
+	.byte	#20
 	.byte	#20
 	.byte	#19
+	.byte	#19
 	.byte	#18
+	.byte	#17
 	.byte	#16
+	.byte	#15
 	.byte	#14
 	.byte	#13
 	.byte	#11
-	.byte	#9
-	.byte	#6
-	.byte	#4
+	.byte	#10
+	.byte	#8
+	.byte	#7
+	.byte	#5
+	.byte	#3
 	.byte	#2
 	.byte	#0
 	.byte	#-2
-	.byte	#-4
-	.byte	#-6
-	.byte	#-9
+	.byte	#-3
+	.byte	#-5
+	.byte	#-7
+	.byte	#-8
+	.byte	#-10
 	.byte	#-11
 	.byte	#-13
 	.byte	#-14
+	.byte	#-15
 	.byte	#-16
+	.byte	#-17
 	.byte	#-18
 	.byte	#-19
+	.byte	#-19
 	.byte	#-20
-	.byte	#-22
-	.byte	#-23
-	.byte	#-23
-	.byte	#-24
-	.byte	#-25
-	.byte	#-25
-	.byte	#-25
-	.byte	#-25
-	.byte	#-25
-	.byte	#-24
-	.byte	#-23
-	.byte	#-23
-	.byte	#-22
+	.byte	#-20
+	.byte	#-20
+	.byte	#-20
 	.byte	#-20
 	.byte	#-19
+	.byte	#-19
 	.byte	#-18
+	.byte	#-17
 	.byte	#-16
+	.byte	#-15
 	.byte	#-14
 	.byte	#-13
 	.byte	#-11
-	.byte	#-9
-	.byte	#-6
-	.byte	#-4
+	.byte	#-10
+	.byte	#-8
+	.byte	#-7
+	.byte	#-5
+	.byte	#-3
 	.byte	#-2
-
 	
 .y_cos_table
-	.byte	#42
-	.byte	#42
-	.byte	#41
-	.byte	#41
-	.byte	#39
-	.byte	#38
-	.byte	#36
 	.byte	#34
-	.byte	#32
-	.byte	#30
-	.byte	#27
-	.byte	#24
-	.byte	#21
-	.byte	#18
-	.byte	#14
-	.byte	#11
-	.byte	#7
-	.byte	#4
-	.byte	#0
-	.byte	#-4
-	.byte	#-7
-	.byte	#-11
-	.byte	#-14
-	.byte	#-18
-	.byte	#-21
-	.byte	#-24
-	.byte	#-27
-	.byte	#-30
-	.byte	#-32
-	.byte	#-34
-	.byte	#-36
-	.byte	#-38
-	.byte	#-39
-	.byte	#-41
-	.byte	#-41
-	.byte	#-42
-	.byte	#-42
-	.byte	#-42
-	.byte	#-41
-	.byte	#-41
-	.byte	#-39
-	.byte	#-38
-	.byte	#-36
-	.byte	#-34
-	.byte	#-32
-	.byte	#-30
-	.byte	#-27
-	.byte	#-24
-	.byte	#-21
-	.byte	#-18
-	.byte	#-14
-	.byte	#-11
-	.byte	#-7
-	.byte	#-4
-	.byte	#0
-	.byte	#4
-	.byte	#7
-	.byte	#11
-	.byte	#14
-	.byte	#18
-	.byte	#21
-	.byte	#24
-	.byte	#27
-	.byte	#30
-	.byte	#32
 	.byte	#34
-	.byte	#36
-	.byte	#38
-	.byte	#39
-	.byte	#41
-	.byte	#41
-	.byte	#42
+	.byte	#33
+	.byte	#33
+	.byte	#32
+	.byte	#31
+	.byte	#29
+	.byte	#28
+	.byte	#26
+	.byte	#24
+	.byte	#22
+	.byte	#20
+	.byte	#17
+	.byte	#14
+	.byte	#12
+	.byte	#9
+	.byte	#6
+	.byte	#3
+	.byte	#0
+	.byte	#-3
+	.byte	#-6
+	.byte	#-9
+	.byte	#-12
+	.byte	#-14
+	.byte	#-17
+	.byte	#-20
+	.byte	#-22
+	.byte	#-24
+	.byte	#-26
+	.byte	#-28
+	.byte	#-29
+	.byte	#-31
+	.byte	#-32
+	.byte	#-33
+	.byte	#-33
+	.byte	#-34
+	.byte	#-34
+	.byte	#-34
+	.byte	#-33
+	.byte	#-33
+	.byte	#-32
+	.byte	#-31
+	.byte	#-29
+	.byte	#-28
+	.byte	#-26
+	.byte	#-24
+	.byte	#-22
+	.byte	#-20
+	.byte	#-17
+	.byte	#-14
+	.byte	#-12
+	.byte	#-9
+	.byte	#-6
+	.byte	#-3
+	.byte	#0
+	.byte	#3
+	.byte	#6
+	.byte	#9
+	.byte	#12
+	.byte	#14
+	.byte	#17
+	.byte	#20
+	.byte	#22
+	.byte	#24
+	.byte	#26
+	.byte	#28
+	.byte	#29
+	.byte	#31
+	.byte	#32
+	.byte	#33
+	.byte	#33
+	.byte	#34
 
 	
 	ORG $FD00
@@ -704,6 +696,368 @@ DrawScreen
 	.byte NOTE_E
 	.byte NOTE_E
 	.byte NOTE_E
+
+	ORG $FE00
+.bgcolors
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	
+	.byte #$4e
+	.byte #$4e
+	.byte #$4e
+	.byte #$4e
+	
+	.byte #$4e
+	.byte #$4e
+	.byte #$4e
+	.byte #$4e
+	
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	
+	.byte #$4a
+	.byte #$4a
+	.byte #$4a
+	.byte #$4a
+	
+	.byte #$4a
+	.byte #$4a
+	.byte #$4a
+	.byte #$4a
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+		
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	
+	.byte #$4e
+	.byte #$4e
+	.byte #$4e
+	.byte #$4e
+	
+	.byte #$4e
+	.byte #$4e
+	.byte #$4e
+	.byte #$4e
+	
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	
+	.byte #$4a
+	.byte #$4a
+	.byte #$4a
+	.byte #$4a
+	
+	.byte #$4a
+	.byte #$4a
+	.byte #$4a
+	.byte #$4a
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+		
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	
+	.byte #$4e
+	.byte #$4e
+	.byte #$4e
+	.byte #$4e
+	
+	.byte #$4e
+	.byte #$4e
+	.byte #$4e
+	.byte #$4e
+	
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	
+	.byte #$4a
+	.byte #$4a
+	.byte #$4a
+	.byte #$4a
+	
+	.byte #$4a
+	.byte #$4a
+	.byte #$4a
+	.byte #$4a
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+		
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	
+	.byte #$48
+	.byte #$48
+	.byte #$48
+	.byte #$48
 	
 ;------------------------------------------------
 ; Interrupt Vectors
