@@ -17,22 +17,22 @@
 ; Constants
 ;------------------------------------------------
 BLACK = #$00
-HMOVE_L7          =  $70
-HMOVE_L6          =  $60
-HMOVE_L5          =  $50
-HMOVE_L4          =  $40
-HMOVE_L3          =  $30
-HMOVE_L2          =  $20
-HMOVE_L1          =  $10
-HMOVE_0           =  $00
-HMOVE_R1          =  $F0
-HMOVE_R2          =  $E0
-HMOVE_R3          =  $D0
-HMOVE_R4          =  $C0
-HMOVE_R5          =  $B0
-HMOVE_R6          =  $A0
-HMOVE_R7          =  $90
-HMOVE_R8          =  $80
+HMOVE_M07          =  $F0
+HMOVE_M06          =  $E0
+HMOVE_M05          =  $D0
+HMOVE_M04          =  $C0
+HMOVE_M03          =  $B0
+HMOVE_M02          =  $A0
+HMOVE_M01          =  $90
+HMOVE_0            =  $80
+HMOVE_M15          =  $70
+HMOVE_M14          =  $60
+HMOVE_M13          =  $50
+HMOVE_M12          =  $40
+HMOVE_M11          =  $30
+HMOVE_M10          =  $20
+HMOVE_M09          =  $10
+HMOVE_M08          =  $00
 
 LOGO_COLOR     = $40
 BG_COLOR 	   = $42
@@ -62,6 +62,11 @@ H_LOGO    = 55
 ;How often to advance the note counter
 TICKS_PER_NOTE = 10
 
+;Joystick masks
+P0_RIGHT_MASK 	= %10000000
+P0_LEFT_MASK 	= %01000000
+P0_DOWN_MASK 	= %00100000
+P0_UP_MASK 		= %00010000
 
 NOTE_E = 23
 ;NOTE_F = 20
@@ -98,6 +103,7 @@ bgLt  .byte
 pfLt  .byte
 
 plrX  .byte
+plrXlsb .byte
 plrY  .byte
 
 ;------------------------------------------------
@@ -124,8 +130,9 @@ Start
 	sta		COLUP0
 	
 	;Initialize player to center of the screen
-	lda		#80
+	lda		#76
 	sta		plrX
+	;sta		plrXlsb
 	lda		#96
 	sta		plrY
 	
@@ -154,14 +161,57 @@ MainLoop
 .noTickReset
 	sta 	ticks
 	
+	
+;*** Read the joystick
+	lda 	#P0_RIGHT_MASK
+	bit		SWCHA
+	bne		.notRight
+	
+	lda		plrX
+	cmp		#126	
+	beq		.notRight
+	adc		#1
+	sta		plrX
+	
+.notRight
+	lda		#P0_LEFT_MASK
+	bit		SWCHA
+	bne		.notLeft
+	
+	lda		plrX
+	cmp		#26	
+	beq		.notLeft
+	sbc		#1
+	sta		plrX
+.notLeft
+	
+	
+	
+	
 	;** Place the player sprite
 	sta 	WSYNC
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
 	lda		plrX
-	sbc		#15
 .pos_loop_plr
 	sbc		#15				;(2)
 	bpl		.pos_loop_plr	;(3)
-	sta		RESP1			;(3)
+	
+	sta		RESP0			;(3)
+
+	sta		WSYNC	
+	eor		#255			;(2)
+	tax	
+	lda		.hmove_table,x	;(4)
+	sta		HMP0			;(3)
+	
+	sta		WSYNC
+	sta		HMOVE
 		
 .waitForVBlank
 	lda		INTIM
@@ -221,7 +271,23 @@ DrawScreen
 	;***** ROM tables go here
 	
 	ORG $FC00
-
+.hmove_table
+	.byte HMOVE_0 
+	.byte HMOVE_M01         
+	.byte HMOVE_M02        
+	.byte HMOVE_M03       
+	.byte HMOVE_M04         
+	.byte HMOVE_M05          
+	.byte HMOVE_M06          
+	.byte HMOVE_M07         
+	.byte HMOVE_M08       
+	.byte HMOVE_M09         
+	.byte HMOVE_M10          
+	.byte HMOVE_M11          
+	.byte HMOVE_M12          
+	.byte HMOVE_M13          
+	.byte HMOVE_M14          
+	.byte HMOVE_M15
 	
 ;------------------------------------------------
 ; Interrupt Vectors
