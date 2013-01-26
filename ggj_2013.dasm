@@ -90,6 +90,9 @@ plrY  .byte
 musicTicks .byte
 musicCount .byte
 
+envelopeDuration  .byte
+envelope		  .byte
+
 ;------------------------------------------------
 ; Start of ROM
 ;------------------------------------------------
@@ -116,7 +119,6 @@ Start
 	;Initialize player to center of the screen
 	lda		#76
 	sta		plrX
-	;sta		plrXlsb
 	lda		#104
 	sta		plrY
 	
@@ -138,6 +140,8 @@ Start
 	lda 	#00
 	sta		musicTicks
 	sta 	musicCount
+	sta		envelopeDuration
+	sta		envelope
 	
 ;------------------------------------------------
 ; Vertical Blank
@@ -274,6 +278,24 @@ MainLoop
 	ldx		musicCount
 	lda		.song,x
 	sta		AUDF1
+	
+	;Is this the start of a new note?
+	and		NOTE_ATTACK
+	beq		.notAttack
+	lda		#15	;Starting volume level
+	sta		envelope
+	lda		#0
+	sta		envelopeDuration
+.notAttack
+	
+	lda envelope
+	sta	AUDV1
+	
+	lda envelope
+	cmp #9
+	beq	.envelopeDone
+	dec envelope
+.envelopeDone
 	
 .waitForVBlank
 	lda		INTIM
