@@ -124,9 +124,9 @@ Start
 	sta		COLUP0
 	
 	;Initialize player to center of the screen
-	lda		#76
+	lda		#18
 	sta		joyX
-	lda		#104
+	lda		#18
 	sta		joyY
 	
 	lda		#$FF
@@ -187,66 +187,58 @@ MainLoop
 	sta		AUDV0
 	
 ;*** Read the joystick
-	lda 	#P0_RIGHT_MASK
+	lda 	#P0_LEFT_MASK
 	bit		SWCHA
 	bne		.notRight
 	
 	lda		joyX
-	cmp		#96	
+	cmp		#36	
 	beq		.notRight
 	adc		#1
 	sta		joyX
 	
 .notRight
-	lda		#P0_LEFT_MASK
+	lda		#P0_RIGHT_MASK
 	bit		SWCHA
 	bne		.notLeft
 	
 	lda		joyX
-	cmp		#60
+	cmp		#0
 	beq		.notLeft
 	sbc		#1
 	sta		joyX
 .notLeft
 	
 	
-	lda 	#P0_UP_MASK
+	lda 	#P0_DOWN_MASK
 	bit		SWCHA
 	bne		.notUp
 
 	lda		joyY
-	cmp		#124	
+	cmp		#36	
 	beq		.notUp
-	adc		#2
+	adc		#1
 	sta		joyY
 
 .notUp
-	lda		#P0_DOWN_MASK
+	lda		#P0_UP_MASK
 	bit		SWCHA
 	bne		.notDown
 
 	lda		joyY
-	cmp		#70	
+	cmp		#0
 	beq		.notDown
-	sbc		#2
+	sbc		#1
 	sta		joyY
 .notDown
 	
 	
-	inc		circleTick
-	lda 	circleTick
-	cmp		#72*2
-	bne		.notDoneCircle
-	lda		#0
-	sta		circleTick
-.notDoneCircle
-	lsr
-	tax
-	lda		.x_sin_table,x
-	adc		joyX
+	ldy		joyX
+	lda		.x_sin_table,y
 	sta		plrX
-	lda		.y_cos_table,x
-	adc		joyY
+	
+	ldy		joyY
+	lda		.y_cos_table,y
 	sta		plrY
 	
 	
@@ -331,15 +323,14 @@ DrawScreen
 	
 ;--Burn the top whitespace	
 	;Pixel aspect ratio is 12:7
-	ldx		#192+1		; Kernel goes here. 	
-.scanline
-	txa
-	adc		ticks
-	tay
-	lda		.bgcolors,y
-	sta		COLUBK
 	
+	;---Top zone, no player/target
+	ldx		#28+1		; Kernel goes here. 	
+.scanline	
 	txa
+	adc		#28+45+46+45
+	tay 	;Save the result for use with the background
+	
 	sbc		plrY
 	adc		#16 ;(2) --If in range, carry will be set, A
 			    ;    will give index into table
@@ -352,12 +343,104 @@ DrawScreen
 .player
 	lda		#$FF
 	sta		GRP0
-.donePlayer	
-	
+.donePlayer		
 	dex
 	sta		WSYNC
 	bne		.scanline 		
-		
+;--end top
+
+;--begin first target range
+	ldx		#45		; Kernel goes here. 	
+.scanline2
+	txa
+	adc		#28+46+45
+	sbc		plrY
+	adc		#16 ;(2) --If in range, carry will be set, A
+			    ;    will give index into table
+	bcs		.player2
+
+	lda		#$00
+	sta		GRP0
+	jmp		.donePlayer2
+
+.player2
+	lda		#$FF
+	sta		GRP0
+.donePlayer2
+	dex
+	sta		WSYNC
+	bne		.scanline2
+;--end first target
+
+;--begin 2nd target		
+	ldx		#46		; Kernel goes here. 	
+.scanline3
+	txa
+	adc		#28+45
+	sbc		plrY
+	adc		#16 ;(2) --If in range, carry will be set, A
+			    ;    will give index into table
+	bcs		.player3
+
+	lda		#$00
+	sta		GRP0
+	jmp		.donePlayer3
+
+.player3
+	lda		#$FF
+	sta		GRP0
+.donePlayer3	
+	dex
+	sta		WSYNC
+	bne		.scanline3
+;--End 2nd target			
+			
+
+;--Start 3rd target			
+	ldx		#45		; Kernel goes here. 	
+.scanline4
+	txa
+	adc		#28
+	sbc		plrY
+	adc		#16 ;(2) --If in range, carry will be set, A
+			    ;    will give index into table
+	bcs		.player4
+
+	lda		#$00
+	sta		GRP0
+	jmp		.donePlayer4
+
+.player4
+	lda		#$FF
+	sta		GRP0
+.donePlayer4
+	dex
+	sta		WSYNC
+	bne		.scanline4					
+;--end 3rd target
+
+;--Start bottom zone	
+	ldx		#28		; Kernel goes here. 	
+.scanline5
+	txa
+	adc		#0
+	sbc		plrY
+	adc		#16 ;(2) --If in range, carry will be set, A
+			    ;    will give index into table
+	bcs		.player5
+
+	lda		#$00
+	sta		GRP0
+	jmp		.donePlayer5
+
+.player5
+	lda		#$FF
+	sta		GRP0
+.donePlayer5
+	dex
+	sta		WSYNC
+	bne		.scanline5				
+;--end bottom zone			
 		
 ;------------------------------------------------
 ; Overscan
@@ -403,153 +486,82 @@ DrawScreen
 	.byte HMOVE_M15
 	
 .x_sin_table
-	.byte	#0
-	.byte	#2
-	.byte	#3
-	.byte	#5
-	.byte	#7
-	.byte	#8
-	.byte	#10
-	.byte	#11
-	.byte	#13
-	.byte	#14
-	.byte	#15
-	.byte	#16
-	.byte	#17
-	.byte	#18
-	.byte	#19
-	.byte	#19
-	.byte	#20
-	.byte	#20
-	.byte	#20
-	.byte	#20
-	.byte	#20
-	.byte	#19
-	.byte	#19
-	.byte	#18
-	.byte	#17
-	.byte	#16
-	.byte	#15
-	.byte	#14
-	.byte	#13
-	.byte	#11
-	.byte	#10
-	.byte	#8
-	.byte	#7
-	.byte	#5
-	.byte	#3
-	.byte	#2
-	.byte	#0
-	.byte	#-2
-	.byte	#-3
-	.byte	#-5
-	.byte	#-7
-	.byte	#-8
-	.byte	#-10
-	.byte	#-11
-	.byte	#-13
-	.byte	#-14
-	.byte	#-15
-	.byte	#-16
-	.byte	#-17
-	.byte	#-18
-	.byte	#-19
-	.byte	#-19
-	.byte	#-20
-	.byte	#-20
-	.byte	#-20
-	.byte	#-20
-	.byte	#-20
-	.byte	#-19
-	.byte	#-19
-	.byte	#-18
-	.byte	#-17
-	.byte	#-16
-	.byte	#-15
-	.byte	#-14
-	.byte	#-13
-	.byte	#-11
-	.byte	#-10
-	.byte	#-8
-	.byte	#-7
-	.byte	#-5
-	.byte	#-3
-	.byte	#-2
+	.byte	#112
+	.byte	#112
+	.byte	#111
+	.byte	#111
+	.byte	#110
+	.byte	#109
+	.byte	#107
+	.byte	#105
+	.byte	#104
+	.byte	#101
+	.byte	#99
+	.byte	#97
+	.byte	#94
+	.byte	#91
+	.byte	#88
+	.byte	#85
+	.byte	#82
+	.byte	#79
+	.byte	#76
+	.byte	#73
+	.byte	#70
+	.byte	#67
+	.byte	#64
+	.byte	#61
+	.byte	#58
+	.byte	#55
+	.byte	#53
+	.byte	#51
+	.byte	#48
+	.byte	#47
+	.byte	#45
+	.byte	#43
+	.byte	#42
+	.byte	#41
+	.byte	#41
+	.byte	#40
+	.byte	#40
 	
 .y_cos_table
-	.byte	#34
-	.byte	#34
-	.byte	#33
-	.byte	#33
-	.byte	#32
-	.byte	#31
-	.byte	#29
-	.byte	#28
-	.byte	#26
-	.byte	#24
-	.byte	#22
-	.byte	#20
-	.byte	#17
-	.byte	#14
-	.byte	#12
-	.byte	#9
-	.byte	#6
-	.byte	#3
-	.byte	#0
-	.byte	#-3
-	.byte	#-6
-	.byte	#-9
-	.byte	#-12
-	.byte	#-14
-	.byte	#-17
-	.byte	#-20
-	.byte	#-22
-	.byte	#-24
-	.byte	#-26
-	.byte	#-28
-	.byte	#-29
-	.byte	#-31
-	.byte	#-32
-	.byte	#-33
-	.byte	#-33
-	.byte	#-34
-	.byte	#-34
-	.byte	#-34
-	.byte	#-33
-	.byte	#-33
-	.byte	#-32
-	.byte	#-31
-	.byte	#-29
-	.byte	#-28
-	.byte	#-26
-	.byte	#-24
-	.byte	#-22
-	.byte	#-20
-	.byte	#-17
-	.byte	#-14
-	.byte	#-12
-	.byte	#-9
-	.byte	#-6
-	.byte	#-3
-	.byte	#0
-	.byte	#3
-	.byte	#6
-	.byte	#9
-	.byte	#12
-	.byte	#14
-	.byte	#17
-	.byte	#20
-	.byte	#22
-	.byte	#24
-	.byte	#26
-	.byte	#28
-	.byte	#29
-	.byte	#31
-	.byte	#32
-	.byte	#33
-	.byte	#33
-	.byte	#34
-
+	.byte	#164
+	.byte	#164
+	.byte	#163
+	.byte	#162
+	.byte	#160
+	.byte	#158
+	.byte	#155
+	.byte	#152
+	.byte	#149
+	.byte	#145
+	.byte	#141
+	.byte	#137
+	.byte	#132
+	.byte	#127
+	.byte	#122
+	.byte	#117
+	.byte	#111
+	.byte	#106
+	.byte	#100
+	.byte	#94
+	.byte	#89
+	.byte	#83
+	.byte	#78
+	.byte	#73
+	.byte	#68
+	.byte	#63
+	.byte	#59
+	.byte	#55
+	.byte	#51
+	.byte	#48
+	.byte	#45
+	.byte	#42
+	.byte	#40
+	.byte	#38
+	.byte	#37
+	.byte	#36
+	.byte	#36
 	
 	ORG $FD00
 .song
