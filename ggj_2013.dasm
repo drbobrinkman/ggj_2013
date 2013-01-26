@@ -367,11 +367,11 @@ MainLoop
 ;------------------------------------------------	
 DrawScreen
 	
-;--Burn the top whitespace	
+    ; Kernel goes here.	
 	;Pixel aspect ratio is 12:7
 	
 	;---Top zone, no player/target
-	ldx		#28+1		; Kernel goes here. 	
+	ldx		#28+1		 	
 .scanline	
 	ldy		bgIndex
 	lda		.bgcolors,y
@@ -407,7 +407,7 @@ DrawScreen
 
 
 ;--begin first target range
-	ldx		#45		; Kernel goes here. 	
+	ldx		#45			
 .scanline2
 	ldy		bgIndex
 	lda		.bgcolors,y
@@ -458,7 +458,7 @@ DrawScreen
 
 
 ;--begin 2nd target		
-	ldx		#46		; Kernel goes here. 	
+	ldx		#46		 	
 .scanline3
 	ldy		bgIndex
 	lda		.bgcolors,y
@@ -509,7 +509,7 @@ DrawScreen
 
 
 ;--Start 3rd target			
-	ldx		#45		; Kernel goes here. 	
+	ldx		#45		
 .scanline4
 	ldy		bgIndex
 	lda		.bgcolors,y
@@ -558,7 +558,7 @@ DrawScreen
 ;--end 3rd target
 
 ;--Start bottom zone	
-	ldx		#28		; Kernel goes here. 	
+	ldx		#28			
 .scanline5
 	ldy		bgIndex
 	lda		.bgcolors,y
