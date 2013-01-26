@@ -102,6 +102,7 @@ bgIndex .byte
 
 tgtX	.byte
 tgtY	.byte
+tgtColor .byte
 
 score   .byte
 
@@ -127,7 +128,7 @@ Start
 	
 	lda		#$6C ;Player color
 	sta		COLUP0
-	lda		#$8C ;Target color
+	lda		#$8A ;Target color
 	sta		COLUP1
 	
 	;Initialize player to center of the screen
@@ -163,7 +164,7 @@ Start
 	lda		.y_cos_table,y
 	sta		tgtY
 
-	lda		#30
+	lda		#15
 	sta		score
 
 	
@@ -341,6 +342,9 @@ MainLoop
 	sta		score
 	
 .scoreIsFine
+	lda		#$8a
+	sta		COLUP1 ;--Set target color to default
+
 	lda		musicCount
 	cmp		#96
 	bne		.notCountTime
@@ -353,12 +357,24 @@ MainLoop
 	lda		.song,x
 	sta		AUDF1
 	
+	
+	
 	;Is this the start of a new note?
 	and		NOTE_ATTACK
 	beq		.notAttack
 	lda		score	;Starting volume level
-	lsr
 	sta		envelope
+	
+	;--If it is an attack, change the target color
+	lda		#$8e
+	sta		COLUP1
+	
+	;--Only collision detect on a note attack
+	lda		#%10000000	;--P0 P1 collision
+	bit		CXPPMM
+	beq		.notAttack  ;--No collision
+	lda		#15
+	sta		score
 .notAttack
 	
 	lda envelope
@@ -369,6 +385,9 @@ MainLoop
 	bmi	.envelopeDone
 	dec envelope
 .envelopeDone
+	
+	;--Clear collisions 
+	sta		CXCLR
 	
 .waitForVBlank
 	lda		INTIM
