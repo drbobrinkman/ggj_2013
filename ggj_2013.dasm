@@ -80,9 +80,6 @@ TICKS_PER_COUNT = 24
     ORG     $80
 
 ticks .byte
-bgDk  .byte
-bgLt  .byte
-pfLt  .byte
 
 plrX  .byte
 plrY  .byte
@@ -112,14 +109,7 @@ Start
 	lda		#0
 	sta		ticks	;initialize ticks	
 	
-	;Initialize colors	
-	lda 	#$44
-	sta		bgDk
-	lda		#$46
-	sta		bgLt
-	lda		#$4e
-	sta		pfLt
-	
+	;Initialize colors		
 	lda		#$6C ;Player color
 	sta		COLUP0
 	lda		#$8A ;Target color
