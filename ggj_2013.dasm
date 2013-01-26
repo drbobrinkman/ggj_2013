@@ -778,41 +778,6 @@ DrawScreen
 
 	ORG $FE00
 .bgcolors
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	
-	.byte #$4e
-	.byte #$4e
-	.byte #$4e
-	.byte #$4e
-	
-	.byte #$4e
-	.byte #$4e
-	.byte #$4e
-	.byte #$4e
-	
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	
 	.byte #$46
 	.byte #$46
 	.byte #$46
@@ -822,6 +787,16 @@ DrawScreen
 	.byte #$4a
 	.byte #$4a
 	.byte #$4a
+	
+	.byte #$4e
+	.byte #$4e
+	.byte #$4e
+	.byte #$4e
+	
+	.byte #$4c
+	.byte #$4c
+	.byte #$4c
+	.byte #$4c
 	
 	.byte #$4a
 	.byte #$4a
@@ -833,310 +808,96 @@ DrawScreen
 	.byte #$48
 	.byte #$48
 	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	.byte #$46
+	
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
 		
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
 	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
 	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
 	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
 	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
 	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
 	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
 	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
 	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
 	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
 	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
 	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	
-	.byte #$4e
-	.byte #$4e
-	.byte #$4e
-	.byte #$4e
-	
-	.byte #$4e
-	.byte #$4e
-	.byte #$4e
-	.byte #$4e
-	
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	
-	.byte #$4a
-	.byte #$4a
-	.byte #$4a
-	.byte #$4a
-	
-	.byte #$4a
-	.byte #$4a
-	.byte #$4a
-	.byte #$4a
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-		
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	
-	.byte #$4e
-	.byte #$4e
-	.byte #$4e
-	.byte #$4e
-	
-	.byte #$4e
-	.byte #$4e
-	.byte #$4e
-	.byte #$4e
-	
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	.byte #$46
-	
-	.byte #$4a
-	.byte #$4a
-	.byte #$4a
-	.byte #$4a
-	
-	.byte #$4a
-	.byte #$4a
-	.byte #$4a
-	.byte #$4a
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-		
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	
-	.byte #$48
-	.byte #$48
-	.byte #$48
-	.byte #$48
+	.byte #$44
+	.byte #$44
+	.byte #$44
+	.byte #$44
+
 	
 ;------------------------------------------------
 ; Interrupt Vectors
