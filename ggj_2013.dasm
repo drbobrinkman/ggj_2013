@@ -330,13 +330,6 @@ MainLoop
 	sta		musicTicks
 	inc		musicCount
 	
-	dec		score ;--Decrement the score each time a note plays
-	bpl		.scoreIsFine
-	
-	lda 	#0
-	sta		score
-	
-.scoreIsFine
 	lda		#$8a
 	sta		COLUP1 ;--Set target color to default
 
@@ -369,21 +362,13 @@ MainLoop
 	;Is this the start of a new note?
 	and		NOTE_ATTACK
 	beq		.notAttack
-	lda		score	;Starting volume level
-	sta		envelope
+	;;lda		score	;Starting volume level
+	;;sta		envelope
 	
 	;--If it is an attack, change the target color
 	lda		#$8e
 	sta		COLUP1
 	
-
-	
-	;--Only collision detect on a note attack
-	lda		#%10000000	;--P0 P1 collision
-	bit		CXPPMM
-	beq		.notAttack  ;--No collision
-	lda		#15
-	sta		score
 .notAttack
 	
 	lda envelope
