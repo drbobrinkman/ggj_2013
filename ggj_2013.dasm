@@ -115,14 +115,15 @@ Start
 	;Initialize colors		
 	lda		#$6C ;Player color
 	sta		COLUP0
-	lda		#$8A ;Target color
-	sta		COLUP1
 	
 	;Initialize player to center of the screen
 	lda		#76
 	sta		tgtX
 	lda		#92
 	sta		tgtY
+	lda		#0
+	sta		tgtColor
+	sta		COLUP1
 	
 	lda     #76
 	sta		plrX
@@ -287,7 +288,7 @@ MainLoop
 	;sta		HMP0
 	
 	
-	;** Place the player sprite
+	;** Place the target sprite
 	sta 	WSYNC
 	nop
 	nop
@@ -295,7 +296,7 @@ MainLoop
 	nop
 	nop
 	nop
-	;nop
+	nop
 	lda		tgtX
 .pos_loop_tgt
 	sbc		#15				;(2)
@@ -329,9 +330,6 @@ MainLoop
 	lda 	#0
 	sta		musicTicks
 	inc		musicCount
-	
-	lda		#$8a
-	sta		COLUP1 ;--Set target color to default
 
 	lda		musicCount
 	cmp		#96
@@ -365,9 +363,6 @@ MainLoop
 	;;lda		score	;Starting volume level
 	;;sta		envelope
 	
-	;--If it is an attack, change the target color
-	lda		#$8e
-	sta		COLUP1
 	
 .notAttack
 	
@@ -408,7 +403,18 @@ MainLoop
 	ora		#1
 	sta		maxHBVolume
 	
-
+	;--Points are scored when maxHBVolume is 0E or 0F. Lose points when < 06
+	cmp		#$06
+	bmi		.loseScore
+	cmp		#$0e
+	bmi		.doneScore
+	inc		score
+	jmp		.doneScore
+.loseScore
+	dec score
+	bpl .doneScore
+	inc score ;--Correct if the score went negative
+.doneScore
 	
 .waitForVBlank
 	lda		INTIM
