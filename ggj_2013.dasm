@@ -103,6 +103,8 @@ bgIndex .byte
 tgtX	.byte
 tgtY	.byte
 
+score   .byte
+
 ;------------------------------------------------
 ; Start of ROM
 ;------------------------------------------------
@@ -144,7 +146,7 @@ Start
 	lda		#8
 	sta		AUDC0
 	
-	lda     #12
+	lda     #0
 	sta		AUDV1
 	lda		#12
 	sta		AUDC1
@@ -158,8 +160,12 @@ Start
 	lda		.x_sin_table,y
 	sta		tgtX
 	ldy		joyY
-	lda		.x_sin_table,y
+	lda		.y_cos_table,y
 	sta		tgtY
+
+	lda		#30
+	sta		score
+
 	
 ;------------------------------------------------
 ; Vertical Blank
@@ -328,6 +334,13 @@ MainLoop
 	sta		musicTicks
 	inc		musicCount
 	
+	dec		score ;--Decrement the score each time a note plays
+	bpl		.scoreIsFine
+	
+	lda 	#0
+	sta		score
+	
+.scoreIsFine
 	lda		musicCount
 	cmp		#96
 	bne		.notCountTime
@@ -343,7 +356,8 @@ MainLoop
 	;Is this the start of a new note?
 	and		NOTE_ATTACK
 	beq		.notAttack
-	lda		#15	;Starting volume level
+	lda		score	;Starting volume level
+	lsr
 	sta		envelope
 .notAttack
 	
@@ -352,7 +366,7 @@ MainLoop
 	
 	lda envelope
 	cmp #9
-	beq	.envelopeDone
+	bmi	.envelopeDone
 	dec envelope
 .envelopeDone
 	
