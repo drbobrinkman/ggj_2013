@@ -121,8 +121,8 @@ MainLoop
 	;** Increment ticks
 	lda		ticks
 	clc
-	adc		#3
-	cmp		#96
+	adc		#4
+	cmp		#128
 	bne		.noTickReset
 	lda		#0
 .noTickReset
@@ -144,10 +144,16 @@ DrawScreen
 	ldx		#192+1		; Kernel goes here. Last 8 scanlines are for logo and status	
 .scanline
 	txa
-	adc		ticks
-	lsr
-	;and		#$0F
-	;ora		#$40
+	sbc		ticks
+	and		#64		;Check the 2nd most significant bit
+
+	beq		.colorLight
+	;**dark
+	lda		#$48
+	jmp		.colorSet
+.colorLight
+	lda		#$4e
+.colorSet	
 	sta		COLUBK
 	
 	dex
