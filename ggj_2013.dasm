@@ -103,6 +103,8 @@ bgIndex .byte
 tgtX	.byte
 tgtY	.byte
 tgtColor .byte
+tgtRow  .byte
+tgtCol  .byte
 
 score   .byte
 
@@ -134,8 +136,10 @@ Start
 	;Initialize player to center of the screen
 	lda		#18
 	sta		joyX
+	sta		tgtCol
 	lda		#18
 	sta		joyY
+	sta		tgtRow
 	
 	lda		#$FF
 	sta		GRP0
@@ -157,10 +161,10 @@ Start
 	sta 	musicCount
 	sta		envelope
 
-	ldy		joyX
+	ldy		tgtCol
 	lda		.x_sin_table,y
 	sta		tgtX
-	ldy		joyY
+	ldy		tgtRow
 	lda		.y_cos_table,y
 	sta		tgtY
 
@@ -353,12 +357,13 @@ MainLoop
 	
 .notCountTime
 	
+	
+	lda		musicTicks
+	bne		.notAttack ;--Cannot be an attack if it isn't a new count
+	
 	ldx		musicCount
 	lda		.song,x
 	sta		AUDF1
-	
-	
-	
 	;Is this the start of a new note?
 	and		NOTE_ATTACK
 	beq		.notAttack
@@ -368,6 +373,27 @@ MainLoop
 	;--If it is an attack, change the target color
 	lda		#$8e
 	sta		COLUP1
+	
+	;---Update target position
+	lda		tgtX
+	adc		#13+36
+.subMoreX
+	sbc		#36
+	cmp		#36
+	bpl		.subMoreX
+	tay
+	lda		.x_sin_table,y
+	sta		tgtX
+	
+	lda		tgtY
+	adc		#17+36
+.subMoreY
+	sbc		#36
+	cmp		#36
+	bpl		.subMoreY
+	tay
+	lda		.y_cos_table,y
+	sta		tgtY
 	
 	;--Only collision detect on a note attack
 	lda		#%10000000	;--P0 P1 collision
@@ -388,6 +414,9 @@ MainLoop
 	
 	;--Clear collisions 
 	sta		CXCLR
+	
+
+	
 	
 .waitForVBlank
 	lda		INTIM
@@ -599,6 +628,7 @@ DrawScreen
 
 	txa
 	adc		#0
+	tay
 	sbc		plrY
 	adc		#16 ;(2) --If in range, carry will be set, A
 			    ;    will give index into table
@@ -611,6 +641,19 @@ DrawScreen
 	sta		GRP0
 .donePlayer5
 
+	tya
+	sbc		tgtY
+	adc		#16 ;(2) --If in range, carry will be set, A
+			    ;    will give index into table
+	bcs		.tgt5
+	lda		#$00
+	sta		GRP1
+	jmp		.doneTgt5
+.tgt5
+	lda		#$FF
+	sta		GRP1
+.doneTgt5
+	
 	clc
 	lda		bgIndex
 	adc		#1
