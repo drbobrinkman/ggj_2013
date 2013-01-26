@@ -84,14 +84,21 @@ bgDk  .byte
 bgLt  .byte
 pfLt  .byte
 
+autoX .byte
+autoY .byte
+
+joyX  .byte
+joyY  .byte
+
 plrX  .byte
 plrY  .byte
 
 musicTicks .byte
 musicCount .byte
 
-envelopeDuration  .byte
 envelope		  .byte
+
+circleTick .byte
 
 ;------------------------------------------------
 ; Start of ROM
@@ -118,9 +125,9 @@ Start
 	
 	;Initialize player to center of the screen
 	lda		#76
-	sta		plrX
+	sta		joyX
 	lda		#104
-	sta		plrY
+	sta		joyY
 	
 	lda		#$FF
 	sta		GRP0
@@ -140,8 +147,8 @@ Start
 	lda 	#00
 	sta		musicTicks
 	sta 	musicCount
-	sta		envelopeDuration
 	sta		envelope
+	sta		circleTick
 	
 ;------------------------------------------------
 ; Vertical Blank
@@ -184,22 +191,22 @@ MainLoop
 	bit		SWCHA
 	bne		.notRight
 	
-	lda		plrX
-	cmp		#126	
+	lda		joyX
+	cmp		#100	
 	beq		.notRight
-	adc		#2
-	sta		plrX
+	adc		#1
+	sta		joyX
 	
 .notRight
 	lda		#P0_LEFT_MASK
 	bit		SWCHA
 	bne		.notLeft
 	
-	lda		plrX
-	cmp		#26	
+	lda		joyX
+	cmp		#52
 	beq		.notLeft
-	sbc		#2
-	sta		plrX
+	sbc		#1
+	sta		joyX
 .notLeft
 	
 	
@@ -207,24 +214,40 @@ MainLoop
 	bit		SWCHA
 	bne		.notUp
 
-	lda		plrY
-	cmp		#188	
+	lda		joyY
+	cmp		#144	
 	beq		.notUp
-	adc		#4
-	sta		plrY
+	adc		#2
+	sta		joyY
 
 .notUp
 	lda		#P0_DOWN_MASK
 	bit		SWCHA
 	bne		.notDown
 
-	lda		plrY
-	cmp		#20	
+	lda		joyY
+	cmp		#64	
 	beq		.notDown
-	sbc		#4
-	sta		plrY
+	sbc		#2
+	sta		joyY
 .notDown
 	
+	
+	inc		circleTick
+	lda 	circleTick
+	cmp		#72*2
+	bne		.notDoneCircle
+	lda		#0
+	sta		circleTick
+.notDoneCircle
+	lsr
+	tax
+	lda		.x_sin_table,x
+	adc		joyX
+	sta		plrX
+	lda		.y_cos_table,x
+	adc		joyY
+	sta		plrY
 	
 	
 	;** Place the player sprite
@@ -284,8 +307,6 @@ MainLoop
 	beq		.notAttack
 	lda		#15	;Starting volume level
 	sta		envelope
-	lda		#0
-	sta		envelopeDuration
 .notAttack
 	
 	lda envelope
@@ -387,6 +408,156 @@ DrawScreen
 	.byte HMOVE_M13          
 	.byte HMOVE_M14          
 	.byte HMOVE_M15
+	
+.x_sin_table
+	.byte	#0
+	.byte	#2
+	.byte	#4
+	.byte	#6
+	.byte	#9
+	.byte	#11
+	.byte	#13
+	.byte	#14
+	.byte	#16
+	.byte	#18
+	.byte	#19
+	.byte	#20
+	.byte	#22
+	.byte	#23
+	.byte	#23
+	.byte	#24
+	.byte	#25
+	.byte	#25
+	.byte	#25
+	.byte	#25
+	.byte	#25
+	.byte	#24
+	.byte	#23
+	.byte	#23
+	.byte	#22
+	.byte	#20
+	.byte	#19
+	.byte	#18
+	.byte	#16
+	.byte	#14
+	.byte	#13
+	.byte	#11
+	.byte	#9
+	.byte	#6
+	.byte	#4
+	.byte	#2
+	.byte	#0
+	.byte	#-2
+	.byte	#-4
+	.byte	#-6
+	.byte	#-9
+	.byte	#-11
+	.byte	#-13
+	.byte	#-14
+	.byte	#-16
+	.byte	#-18
+	.byte	#-19
+	.byte	#-20
+	.byte	#-22
+	.byte	#-23
+	.byte	#-23
+	.byte	#-24
+	.byte	#-25
+	.byte	#-25
+	.byte	#-25
+	.byte	#-25
+	.byte	#-25
+	.byte	#-24
+	.byte	#-23
+	.byte	#-23
+	.byte	#-22
+	.byte	#-20
+	.byte	#-19
+	.byte	#-18
+	.byte	#-16
+	.byte	#-14
+	.byte	#-13
+	.byte	#-11
+	.byte	#-9
+	.byte	#-6
+	.byte	#-4
+	.byte	#-2
+
+	
+.y_cos_table
+	.byte	#42
+	.byte	#42
+	.byte	#41
+	.byte	#41
+	.byte	#39
+	.byte	#38
+	.byte	#36
+	.byte	#34
+	.byte	#32
+	.byte	#30
+	.byte	#27
+	.byte	#24
+	.byte	#21
+	.byte	#18
+	.byte	#14
+	.byte	#11
+	.byte	#7
+	.byte	#4
+	.byte	#0
+	.byte	#-4
+	.byte	#-7
+	.byte	#-11
+	.byte	#-14
+	.byte	#-18
+	.byte	#-21
+	.byte	#-24
+	.byte	#-27
+	.byte	#-30
+	.byte	#-32
+	.byte	#-34
+	.byte	#-36
+	.byte	#-38
+	.byte	#-39
+	.byte	#-41
+	.byte	#-41
+	.byte	#-42
+	.byte	#-42
+	.byte	#-42
+	.byte	#-41
+	.byte	#-41
+	.byte	#-39
+	.byte	#-38
+	.byte	#-36
+	.byte	#-34
+	.byte	#-32
+	.byte	#-30
+	.byte	#-27
+	.byte	#-24
+	.byte	#-21
+	.byte	#-18
+	.byte	#-14
+	.byte	#-11
+	.byte	#-7
+	.byte	#-4
+	.byte	#0
+	.byte	#4
+	.byte	#7
+	.byte	#11
+	.byte	#14
+	.byte	#18
+	.byte	#21
+	.byte	#24
+	.byte	#27
+	.byte	#30
+	.byte	#32
+	.byte	#34
+	.byte	#36
+	.byte	#38
+	.byte	#39
+	.byte	#41
+	.byte	#41
+	.byte	#42
+
 	
 	ORG $FD00
 .song
