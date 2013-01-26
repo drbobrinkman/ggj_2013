@@ -98,7 +98,7 @@ musicCount .byte
 
 envelope		  .byte
 
-circleTick .byte
+bgIndex .byte
 
 ;------------------------------------------------
 ; Start of ROM
@@ -148,7 +148,7 @@ Start
 	sta		musicTicks
 	sta 	musicCount
 	sta		envelope
-	sta		circleTick
+
 	
 ;------------------------------------------------
 ; Vertical Blank
@@ -172,6 +172,7 @@ MainLoop
 .noTickReset
 	clc
 	sta 	ticks
+	sta		bgIndex
 	
 	;Want the heartbeat sound to go up and down in 
 	; volume, to make the "beat" effect
@@ -327,23 +328,33 @@ DrawScreen
 	;---Top zone, no player/target
 	ldx		#28+1		; Kernel goes here. 	
 .scanline	
+	ldy		bgIndex
+	lda		.bgcolors,y
+	sta		COLUBK
+	
 	txa
 	adc		#28+45+46+45
-	tay 	;Save the result for use with the background
-	
 	sbc		plrY
 	adc		#16 ;(2) --If in range, carry will be set, A
 			    ;    will give index into table
 	bcs		.player
-	
 	lda		#$00
 	sta		GRP0
 	jmp		.donePlayer
-
 .player
 	lda		#$FF
 	sta		GRP0
-.donePlayer		
+.donePlayer
+
+	clc
+	lda		bgIndex
+	adc		#1
+	cmp		#96
+	bne		.noBgReset
+	lda		#0	
+.noBgReset
+	sta		bgIndex
+	
 	dex
 	sta		WSYNC
 	bne		.scanline 		
@@ -352,6 +363,10 @@ DrawScreen
 ;--begin first target range
 	ldx		#45		; Kernel goes here. 	
 .scanline2
+	ldy		bgIndex
+	lda		.bgcolors,y
+	sta		COLUBK
+
 	txa
 	adc		#28+46+45
 	sbc		plrY
@@ -367,6 +382,16 @@ DrawScreen
 	lda		#$FF
 	sta		GRP0
 .donePlayer2
+
+	clc
+	lda		bgIndex
+	adc		#1
+	cmp		#96
+	bne		.noBgReset2
+	lda		#0	
+.noBgReset2
+	sta		bgIndex
+
 	dex
 	sta		WSYNC
 	bne		.scanline2
@@ -375,6 +400,10 @@ DrawScreen
 ;--begin 2nd target		
 	ldx		#46		; Kernel goes here. 	
 .scanline3
+	ldy		bgIndex
+	lda		.bgcolors,y
+	sta		COLUBK
+
 	txa
 	adc		#28+45
 	sbc		plrY
@@ -389,7 +418,17 @@ DrawScreen
 .player3
 	lda		#$FF
 	sta		GRP0
-.donePlayer3	
+.donePlayer3
+
+	clc
+	lda		bgIndex
+	adc		#1
+	cmp		#96
+	bne		.noBgReset3
+	lda		#0	
+.noBgReset3
+	sta		bgIndex
+	
 	dex
 	sta		WSYNC
 	bne		.scanline3
@@ -399,6 +438,10 @@ DrawScreen
 ;--Start 3rd target			
 	ldx		#45		; Kernel goes here. 	
 .scanline4
+	ldy		bgIndex
+	lda		.bgcolors,y
+	sta		COLUBK
+	
 	txa
 	adc		#28
 	sbc		plrY
@@ -414,6 +457,16 @@ DrawScreen
 	lda		#$FF
 	sta		GRP0
 .donePlayer4
+
+	clc
+	lda		bgIndex
+	adc		#1
+	cmp		#96
+	bne		.noBgReset4
+	lda		#0	
+.noBgReset4
+	sta		bgIndex
+
 	dex
 	sta		WSYNC
 	bne		.scanline4					
@@ -422,6 +475,10 @@ DrawScreen
 ;--Start bottom zone	
 	ldx		#28		; Kernel goes here. 	
 .scanline5
+	ldy		bgIndex
+	lda		.bgcolors,y
+	sta		COLUBK
+
 	txa
 	adc		#0
 	sbc		plrY
@@ -437,6 +494,16 @@ DrawScreen
 	lda		#$FF
 	sta		GRP0
 .donePlayer5
+
+	clc
+	lda		bgIndex
+	adc		#1
+	cmp		#96
+	bne		.noBgReset5
+	lda		#0	
+.noBgReset5
+	sta		bgIndex
+
 	dex
 	sta		WSYNC
 	bne		.scanline5				
