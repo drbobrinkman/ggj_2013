@@ -34,9 +34,6 @@ HMOVE_M10          =  $20
 HMOVE_M09          =  $10
 HMOVE_M08          =  $00
 
-LOGO_COLOR     = $40
-BG_COLOR 	   = $42
-
 ; values for NUSIZx:
 ONE_COPY          = %000
 TWO_COPIES        = %001
@@ -56,29 +53,25 @@ BW_MASK           = %00001000       ; black and white bit
 SELECT_MASK       = %00000010
 RESET_MASK        = %00000001
 
-;Height of the image to display
-H_LOGO    = 55
-
-;How often to advance the note counter
-TICKS_PER_NOTE = 10
-
 ;Joystick masks
 P0_RIGHT_MASK 	= %10000000
 P0_LEFT_MASK 	= %01000000
 P0_DOWN_MASK 	= %00100000
 P0_UP_MASK 		= %00010000
 
-NOTE_E = 23
-;NOTE_F = 20
-NOTE_G = 19
-NOTE_GS = 18
-NOTE_A = 17
-NOTE_B = 15
-NOTE_C = 14
-NOTE_D = 12
-NOTE_E2 = 11
-NOTE_D2 = 26
+NOTE_C2 = 26 ;12
+NOTE_BF2 = 14
+NOTE_A2	= 15
+NOTE_G	= 17
+NOTE_F	= 19
+NOTE_E	= 20
+NOTE_D	= 23
+NOTE_C	= 26
+NOTE_A	= 31
 
+NOTE_ATTACK = 32
+
+TICKS_PER_COUNT = 24
 
 ;------------------------------------------------
 ; RAM
@@ -92,8 +85,10 @@ bgLt  .byte
 pfLt  .byte
 
 plrX  .byte
-plrXlsb .byte
 plrY  .byte
+
+musicTicks .byte
+musicCount .byte
 
 ;------------------------------------------------
 ; Start of ROM
@@ -135,11 +130,14 @@ Start
 	lda		#8
 	sta		AUDC0
 	
-	;lda     #15
-	;sta		AUDV1
+	lda     #12
+	sta		AUDV1
 	lda		#12
 	sta		AUDC1
 	
+	lda 	#00
+	sta		musicTicks
+	sta 	musicCount
 	
 ;------------------------------------------------
 ; Vertical Blank
@@ -164,6 +162,8 @@ MainLoop
 	clc
 	sta 	ticks
 	
+	;Want the heartbeat sound to go up and down in 
+	; volume, to make the "beat" effect
 	lda		ticks
 	lsr
 	lsr
@@ -251,6 +251,30 @@ MainLoop
 	;Clear the player1 sprite
 	lda		#0
 	sta		GRP0
+	
+	
+	
+	lda		musicTicks
+	adc		#1
+	sta		musicTicks
+	cmp		TICKS_PER_COUNT
+	bne		.notCountTime
+	lda 	#0
+	sta		musicTicks
+	inc		musicCount
+	
+	lda		musicCount
+	cmp		#96
+	bne		.notCountTime
+	lda		#0
+	sta		musicCount
+	
+.notCountTime
+	
+	ldx		musicCount
+	lda		.song,x
+	sta		AUDF1
+	
 .waitForVBlank
 	lda		INTIM
 	bne		.waitForVBlank
@@ -344,7 +368,149 @@ DrawScreen
 	
 	ORG $FD00
 .song
-
+	.byte NOTE_D | NOTE_ATTACK
+	.byte NOTE_D
+	.byte NOTE_A2 | NOTE_ATTACK
+	.byte NOTE_A2
+	.byte NOTE_A2 | NOTE_ATTACK
+	.byte NOTE_A2
+	.byte NOTE_A2
+	.byte NOTE_A2
+	
+	.byte NOTE_G | NOTE_ATTACK
+	.byte NOTE_G
+	.byte NOTE_F | NOTE_ATTACK
+	.byte NOTE_F
+	.byte NOTE_G | NOTE_ATTACK
+	.byte NOTE_G
+	.byte NOTE_G
+	.byte NOTE_G
+	
+	.byte NOTE_C2 | NOTE_ATTACK
+	.byte NOTE_C2
+	.byte NOTE_C2
+	.byte NOTE_BF2 | NOTE_ATTACK
+	.byte NOTE_A2 | NOTE_ATTACK
+	.byte NOTE_G | NOTE_ATTACK
+	.byte NOTE_F | NOTE_ATTACK
+	.byte NOTE_E | NOTE_ATTACK
+	
+	.byte NOTE_D | NOTE_ATTACK
+	.byte NOTE_D
+	.byte NOTE_D
+	.byte NOTE_D
+	.byte NOTE_D | NOTE_ATTACK
+	.byte NOTE_D
+	.byte NOTE_D
+	.byte NOTE_D
+	
+	.byte NOTE_D | NOTE_ATTACK
+	.byte NOTE_D
+	.byte NOTE_A2 | NOTE_ATTACK
+	.byte NOTE_A2
+	.byte NOTE_A2 | NOTE_ATTACK
+	.byte NOTE_A2
+	.byte NOTE_A2
+	.byte NOTE_A2
+	
+	.byte NOTE_G | NOTE_ATTACK
+	.byte NOTE_G
+	.byte NOTE_F | NOTE_ATTACK
+	.byte NOTE_F
+	.byte NOTE_G | NOTE_ATTACK
+	.byte NOTE_G
+	.byte NOTE_G
+	.byte NOTE_G
+	
+	.byte NOTE_C2 | NOTE_ATTACK
+	.byte NOTE_C2
+	.byte NOTE_C2
+	.byte NOTE_BF2 | NOTE_ATTACK
+	.byte NOTE_A2 | NOTE_ATTACK
+	.byte NOTE_G | NOTE_ATTACK
+	.byte NOTE_F | NOTE_ATTACK
+	.byte NOTE_E | NOTE_ATTACK
+	
+	.byte NOTE_D | NOTE_ATTACK
+	.byte NOTE_D
+	.byte NOTE_D
+	.byte NOTE_D
+	.byte NOTE_D | NOTE_ATTACK
+	.byte NOTE_D
+	.byte NOTE_D
+	.byte NOTE_D
+	
+	.byte NOTE_A | NOTE_ATTACK
+	.byte NOTE_A
+	.byte NOTE_C | NOTE_ATTACK
+	.byte NOTE_C
+	.byte NOTE_C | NOTE_ATTACK
+	.byte NOTE_C
+	.byte NOTE_C
+	.byte NOTE_C
+	
+	.byte NOTE_D | NOTE_ATTACK
+	.byte NOTE_D | NOTE_ATTACK
+	.byte NOTE_F | NOTE_ATTACK
+	.byte NOTE_F
+	.byte NOTE_F | NOTE_ATTACK
+	.byte NOTE_F
+	.byte NOTE_F
+	.byte NOTE_F
+	
+	.byte NOTE_C2 | NOTE_ATTACK
+	.byte NOTE_C2
+	.byte NOTE_C2
+	.byte NOTE_BF2 | NOTE_ATTACK
+	.byte NOTE_A2 | NOTE_ATTACK
+	.byte NOTE_G | NOTE_ATTACK
+	.byte NOTE_F | NOTE_ATTACK
+	.byte NOTE_E | NOTE_ATTACK
+	
+	.byte NOTE_D | NOTE_ATTACK
+	.byte NOTE_D
+	.byte NOTE_D
+	.byte NOTE_D
+	.byte NOTE_D | NOTE_ATTACK
+	.byte NOTE_D
+	.byte NOTE_D
+	.byte NOTE_D
+	;--Song end
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
+	.byte NOTE_E
 	
 ;------------------------------------------------
 ; Interrupt Vectors
