@@ -100,6 +100,9 @@ envelope		  .byte
 
 bgIndex .byte
 
+tgtX	.byte
+tgtY	.byte
+
 ;------------------------------------------------
 ; Start of ROM
 ;------------------------------------------------
@@ -120,8 +123,10 @@ Start
 	lda		#$4e
 	sta		pfLt
 	
-	lda		#$6C
+	lda		#$6C ;Player color
 	sta		COLUP0
+	lda		#$8C ;Target color
+	sta		COLUP1
 	
 	;Initialize player to center of the screen
 	lda		#18
@@ -149,6 +154,12 @@ Start
 	sta 	musicCount
 	sta		envelope
 
+	ldy		joyX
+	lda		.x_sin_table,y
+	sta		tgtX
+	ldy		joyY
+	lda		.x_sin_table,y
+	sta		tgtY
 	
 ;------------------------------------------------
 ; Vertical Blank
@@ -267,10 +278,44 @@ MainLoop
 	
 	sta		WSYNC
 	sta		HMOVE
-
+	
 	;Clear the player1 sprite
 	lda		#0
 	sta		GRP0
+	sta		HMP0
+	
+	
+	;** Place the player sprite
+	sta 	WSYNC
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	;nop
+	lda		tgtX
+.pos_loop_tgt
+	sbc		#15				;(2)
+	bpl		.pos_loop_tgt	;(3)
+
+	sta		RESP1			;(3)
+
+	sta		WSYNC	
+	eor		#255			;(2)
+	tax	
+	lda		.hmove_table,x	;(4)
+	sta		HMP1			;(3)
+
+	sta		WSYNC
+	sta		HMOVE
+
+	;Clear the player1 sprite
+	lda		#0
+	sta		GRP1
+	sta		HMP1	
+	
+	
 	
 	
 	
@@ -360,6 +405,7 @@ DrawScreen
 	bne		.scanline 		
 ;--end top
 
+
 ;--begin first target range
 	ldx		#45		; Kernel goes here. 	
 .scanline2
@@ -369,19 +415,31 @@ DrawScreen
 
 	txa
 	adc		#28+46+45
+	tay
 	sbc		plrY
 	adc		#16 ;(2) --If in range, carry will be set, A
 			    ;    will give index into table
 	bcs		.player2
-
 	lda		#$00
 	sta		GRP0
 	jmp		.donePlayer2
-
 .player2
 	lda		#$FF
 	sta		GRP0
 .donePlayer2
+
+	tya
+	sbc		tgtY
+	adc		#16 ;(2) --If in range, carry will be set, A
+			    ;    will give index into table
+	bcs		.tgt2
+	lda		#$00
+	sta		GRP1
+	jmp		.doneTgt2
+.tgt2
+	lda		#$FF
+	sta		GRP1
+.doneTgt2
 
 	clc
 	lda		bgIndex
@@ -397,6 +455,8 @@ DrawScreen
 	bne		.scanline2
 ;--end first target
 
+
+
 ;--begin 2nd target		
 	ldx		#46		; Kernel goes here. 	
 .scanline3
@@ -406,19 +466,31 @@ DrawScreen
 
 	txa
 	adc		#28+45
+	tay		;Store to use for positioning the target
 	sbc		plrY
 	adc		#16 ;(2) --If in range, carry will be set, A
 			    ;    will give index into table
 	bcs		.player3
-
 	lda		#$00
 	sta		GRP0
 	jmp		.donePlayer3
-
 .player3
 	lda		#$FF
 	sta		GRP0
 .donePlayer3
+
+	tya
+	sbc		tgtY
+	adc		#16 ;(2) --If in range, carry will be set, A
+			    ;    will give index into table
+	bcs		.tgt3
+	lda		#$00
+	sta		GRP1
+	jmp		.doneTgt3
+.tgt3
+	lda		#$FF
+	sta		GRP1
+.doneTgt3
 
 	clc
 	lda		bgIndex
@@ -435,6 +507,7 @@ DrawScreen
 ;--End 2nd target			
 			
 
+
 ;--Start 3rd target			
 	ldx		#45		; Kernel goes here. 	
 .scanline4
@@ -444,19 +517,31 @@ DrawScreen
 	
 	txa
 	adc		#28
+	tay
 	sbc		plrY
 	adc		#16 ;(2) --If in range, carry will be set, A
 			    ;    will give index into table
 	bcs		.player4
-
 	lda		#$00
 	sta		GRP0
 	jmp		.donePlayer4
-
 .player4
 	lda		#$FF
 	sta		GRP0
 .donePlayer4
+
+	tya
+	sbc		tgtY
+	adc		#16 ;(2) --If in range, carry will be set, A
+			    ;    will give index into table
+	bcs		.tgt4
+	lda		#$00
+	sta		GRP1
+	jmp		.doneTgt4
+.tgt4
+	lda		#$FF
+	sta		GRP1
+.doneTgt4
 
 	clc
 	lda		bgIndex
@@ -485,11 +570,9 @@ DrawScreen
 	adc		#16 ;(2) --If in range, carry will be set, A
 			    ;    will give index into table
 	bcs		.player5
-
 	lda		#$00
 	sta		GRP0
 	jmp		.donePlayer5
-
 .player5
 	lda		#$FF
 	sta		GRP0
