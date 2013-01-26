@@ -79,17 +79,6 @@ NOTE_D = 12
 NOTE_E2 = 11
 NOTE_D2 = 26
 
-;These notes signal the start of a note
-NOTEA_E = 23+32
-;NOTEA_F = 20+32
-NOTEA_G = 19+32
-NOTEA_GS = 18+32
-NOTEA_A = 17+32
-NOTEA_B = 15+32
-NOTEA_C = 14+32
-NOTEA_D = 12+32
-NOTEA_E2 = 11+32
-NOTEA_D2 = 26+32
 
 ;------------------------------------------------
 ; RAM
@@ -139,6 +128,19 @@ Start
 	lda		#$FF
 	sta		GRP0
 	
+	lda		#3
+	sta		AUDV0
+	lda		#27
+	sta		AUDF0
+	lda		#8
+	sta		AUDC0
+	
+	;lda     #15
+	;sta		AUDV1
+	lda		#12
+	sta		AUDC1
+	
+	
 ;------------------------------------------------
 ; Vertical Blank
 ;------------------------------------------------
@@ -159,8 +161,19 @@ MainLoop
 	bne		.noTickReset
 	lda		#0
 .noTickReset
+	clc
 	sta 	ticks
 	
+	lda		ticks
+	lsr
+	lsr
+	lsr
+	cmp		#8
+	bmi		.goingUp
+	eor     #%00001111
+.goingUp
+	adc		#1
+	sta		AUDV0
 	
 ;*** Read the joystick
 	lda 	#P0_RIGHT_MASK
@@ -250,8 +263,8 @@ MainLoop
 DrawScreen
 	
 ;--Burn the top whitespace	
-	;Image is 55 tall, 32 wide. Center it vertically... Pixel aspect ration is 12:7
-	ldx		#192+1		; Kernel goes here. Last 8 scanlines are for logo and status	
+	;Pixel aspect ratio is 12:7
+	ldx		#192+1		; Kernel goes here. 	
 .scanline
 	txa
 	sbc		ticks
@@ -328,6 +341,10 @@ DrawScreen
 	.byte HMOVE_M13          
 	.byte HMOVE_M14          
 	.byte HMOVE_M15
+	
+	ORG $FD00
+.song
+
 	
 ;------------------------------------------------
 ; Interrupt Vectors
