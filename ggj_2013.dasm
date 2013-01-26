@@ -416,6 +416,18 @@ MainLoop
 	inc score ;--Correct if the score went negative
 .doneScore
 	
+	;--If score is high enough, make the "baby" visible
+	lda		score
+	cmp		#$0C
+	bpl		.visibleBaby
+	lda		#$00
+	sta		COLUP1
+	jmp 	.doneBaby
+.visibleBaby
+	lda		#$8c
+	sta		COLUP1
+.doneBaby
+	
 .waitForVBlank
 	lda		INTIM
 	bne		.waitForVBlank
