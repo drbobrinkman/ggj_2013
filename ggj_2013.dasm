@@ -97,6 +97,9 @@ tgtColor .byte
 
 score   .byte
 
+maxHBVolume .byte
+temp	.byte
+
 ;------------------------------------------------
 ; Start of ROM
 ;------------------------------------------------
@@ -145,8 +148,11 @@ Start
 	sta		musicTicks
 	sta 	musicCount
 	sta		envelope
+	 
+	lda		#2
+	sta		maxHBVolume
 
-	lda		#15
+	lda		#0
 	sta		score
 
 	
@@ -185,6 +191,13 @@ MainLoop
 	eor     #%00001111
 .goingUp
 	adc		#1
+	;and     maxHBVolume
+	asl
+.decreaseVol
+	lsr
+	cmp		maxHBVolume
+	bpl		.decreaseVol
+	
 	sta		AUDV0
 	
 ;*** Read the joystick
@@ -193,9 +206,9 @@ MainLoop
 	bne		.notRight
 	
 	lda		plrX
-	cmp		#112	
+	cmp		#132	
 	beq		.notRight
-	adc		#2
+	adc		#1
 	sta		plrX
 	
 .notRight
@@ -204,9 +217,9 @@ MainLoop
 	bne		.notLeft
 	
 	lda		plrX
-	cmp		#40
+	cmp		#20
 	beq		.notLeft
-	sbc		#2
+	sbc		#1
 	sta		plrX
 .notLeft
 	
@@ -218,7 +231,7 @@ MainLoop
 	lda		plrY
 	cmp		#164
 	beq		.notUp
-	adc		#4
+	adc		#2
 	sta		plrY
 
 .notUp
@@ -229,7 +242,7 @@ MainLoop
 	lda		plrY
 	cmp		#36
 	beq		.notDown
-	sbc		#4
+	sbc		#2
 	sta		plrY
 .notDown
 	
@@ -339,9 +352,9 @@ MainLoop
 	;---Update target position
 	lda		tgtX
 	adc		#1
-	cmp		#112
+	cmp		#132
 	bne		.okCol
-	lda		#40	
+	lda		#20	
 .okCol
 	sta		tgtX
 
@@ -385,8 +398,32 @@ MainLoop
 	;--Clear collisions 
 	sta		CXCLR
 	
-
+	;--Set the HB volume based on distance
+	lda		#16
+	sta		maxHBVolume
 	
+	lda		plrX
+	sbc		tgtX
+	bpl		.isPositiveX
+	eor		#$FF
+.isPositiveX
+	sta		temp
+	lda		plrY
+	sbc		tgtY
+	bpl		.isPositiveY
+	eor		#$FF
+.isPositiveY
+	adc		temp
+.adjustVolume
+	dec 	maxHBVolume
+	dec		maxHBVolume
+	lsr
+	bne	 	.adjustVolume
+	lda		maxHBVolume ;;Never let volume get below 1
+	ora		#1
+	sta		maxHBVolume
+	
+
 	
 .waitForVBlank
 	lda		INTIM
