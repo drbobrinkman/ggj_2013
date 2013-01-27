@@ -118,6 +118,12 @@ bgMask .byte
 totalDist .byte
 babySpeed .byte
 aiDir	  .byte
+
+;--This is the real "Score"
+timeSpentWithBabySec .byte
+timeSpentWithBabyMin .byte
+timerTicks			.byte
+
 ;------------------------------------------------
 ; Start of ROM
 ;------------------------------------------------
@@ -233,7 +239,9 @@ RealStart
 	sta 	musicCount
 	sta		envelope
 	sta		aiDir
-	
+	sta		timeSpentWithBabySec
+	sta		timeSpentWithBabyMin
+	sta		timerTicks
 	lda		#2
 	sta		maxHBVolume
 
@@ -260,6 +268,16 @@ MainLoop
 	beq		RealStart
 	
 	;** Increment ticks
+	lda		timerTicks
+	clc
+	adc		#1
+	cmp		#60
+	bne		.noTimerTickReset
+	lda		#0
+.noTimerTickReset
+	clc
+	sta		timerTicks
+	
 	lda		ticks
 	clc
 	adc		#4
@@ -475,9 +493,9 @@ MainLoop
 	sta		maxHBVolume
 	
 	;--Points are scored when maxHBVolume is 0E or 0F. Lose points when < 06
-	cmp		#$05
+	cmp		#$04 ;;TODO change back to 5 when done testing
 	bmi		.loseScore
-	cmp		#$08
+	cmp		#$07 ;;TODO change back to 8 when done testing
 	bmi		.doneScore
 	inc		score
 	jmp		.doneScore
@@ -682,6 +700,19 @@ MainLoop
 	sta		bgMask
 	lda		#1 ;--For now, stick with slow baby
 	sta		babySpeed
+	;Add to the "time with Baby",
+	; but only do it once per second
+	lda		timerTicks
+	bne		.doneBGMask
+	lda		timeSpentWithBabySec
+	adc		#1
+	cmp		#60
+	bne		.notBabyMinute
+	;;NOTE:Not handling overflow of minutes!
+	inc		timeSpentWithBabyMin	
+	lda		#0
+.notBabyMinute
+	sta		timeSpentWithBabySec
 .doneBGMask
 	
 	
