@@ -506,9 +506,9 @@ MainLoop
 	sta		maxHBVolume
 	
 	;--Points are scored when maxHBVolume is 0E or 0F. Lose points when < 06
-	cmp		#$04 ;;TODO change back to 5 when done testing
+	cmp		#$05 ;;TODO change back to 5 when done testing
 	bmi		.loseScore
-	cmp		#$07 ;;TODO change back to 8 when done testing
+	cmp		#$08 ;;TODO change back to 8 when done testing
 	bmi		.doneScore
 	inc		score
 	jmp		.doneScore
@@ -740,6 +740,8 @@ MainLoop
 	sbc		#SCORE_FOR_SONG
 	lsr
 	sta		songVol
+	cmp		#3
+	bmi		.doneSongVol
 	lda		#1
 	sta		madeMusic
 .doneSongVol
