@@ -73,11 +73,15 @@ NOTE_ATTACK = 32
 
 TICKS_PER_COUNT = 24
 
+SCORE_TO_SEE_BABY = $05
 SCORE_FOR_BG = 64
 SCORE_FOR_SONG = 96
 
 PLAYER_COLOR = $8c
 BABY_COLOR = $6c
+
+H_EDGE = 132
+V_EDGE = 162
 
 ;------------------------------------------------
 ; RAM
@@ -100,6 +104,9 @@ bgIndex .byte
 
 tgtX	.byte
 tgtY	.byte
+
+tgtTargetX .byte
+tgtTargetY .byte
 
 score   .byte
 
@@ -403,9 +410,9 @@ MainLoop
 	sta		maxHBVolume
 	
 	;--Points are scored when maxHBVolume is 0E or 0F. Lose points when < 06
-	cmp		#$06
+	cmp		#$04
 	bmi		.loseScore
-	cmp		#$09
+	cmp		#$07
 	bmi		.doneScore
 	inc		score
 	jmp		.doneScore
@@ -426,7 +433,7 @@ MainLoop
 	
 	;--If score is high enough, make the "baby" visible
 	lda		score
-	cmp		#$0C
+	cmp		#SCORE_TO_SEE_BABY
 	bpl		.visibleBaby
 	lda		#$00
 	sta		COLUP1
@@ -440,19 +447,104 @@ MainLoop
 
 	;----AI EVASION CODE
 		
-	lda		plrX
-	sbc		tgtX
+;	lda		plrX
+;	sbc		tgtX
 	;--If this is a small positive number,
 	;  we are to the left of the player, and we need to run.
 	;  If it is a small positive number, we are to the left, and need to run
-	bpl		.dontRunRight
+;	bpl		.dontRunRight
+;	lda 	tgtX
+;	adc		babySpeed
+;	sta		tgtX
+;	jmp		.horizRunDone
+;.dontRunRight
+;	lda		tgtX
+;	sbc		babySpeed
+;	sta		tgtX
+;.horizRunDone
+	;20 to 132
+;	lda		tgtX
+;	cmp		#132
+;	bmi		.tgtXNotTooBig
+;	lda		#132
+;.tgtXNotTooBig
+;	cmp		#20
+;	bpl		.tgtXNotTooSmall
+;	lda		#20
+;.tgtXNotTooSmall
+;	sta		tgtX
+	
+	
+;	lda		plrY
+;	sbc		tgtY
+	;--If this is a positive number,
+	;  we are to the below of the player, and we need to run.
+	;  otherwise we are to the up, and need to run
+;	bpl		.dontRunDown
+;.doRunDown
+;	lda 	tgtY
+;	adc		babySpeed
+;	adc		babySpeed
+;	sta		tgtY
+;	jmp		.vertRunDone
+;.dontRunDown
+;	lda		tgtY
+;	sbc		babySpeed
+;	sbc		babySpeed
+;	sta		tgtY
+;.vertRunDone
+	;20 to 132
+;	lda		tgtY
+;	cmp		#162
+;	bmi		.tgtYNotTooBig
+;	lda		#162
+;.tgtYNotTooBig
+;	cmp		#38
+;	bpl		.tgtYNotTooSmall
+;	lda		#38
+;.tgtYNotTooSmall
+;	sta		tgtY
+	
+	;--GOAL: Reach the point diametrically opposite from the player
+	lda		plrX
+	cmp		#76
+	bpl		.playerIsRight
+	lda		#132
+	sta		tgtTargetX
+	jmp		.playerIsLeft
+.playerIsRight
+	lda		#20
+	sta		tgtTargetX
+.playerIsLeft
+	
+	lda		plrY
+	cmp		#100
+	bpl		.playerIsUp
+	lda		#162
+	sta		tgtTargetY
+	jmp		.playerIsDown
+.playerIsUp
+	lda		#38
+	sta		tgtTargetY
+.playerIsDown
+
+
+	lda		plrY
+	lsr
+	eor		plrX
+	and		#%00000001
+	beq		.doY
+	
+	lda		tgtTargetX
+	sbc		tgtX
+	bpl		.runRight
 	lda 	tgtX
-	adc		babySpeed
+	sbc		babySpeed
 	sta		tgtX
 	jmp		.horizRunDone
-.dontRunRight
+.runRight
 	lda		tgtX
-	sbc		babySpeed
+	adc		babySpeed
 	sta		tgtX
 .horizRunDone
 	;20 to 132
@@ -466,24 +558,21 @@ MainLoop
 	lda		#20
 .tgtXNotTooSmall
 	sta		tgtX
+	jmp		.noDoY
 	
-	
-	lda		plrY
+.doY	
+	lda		tgtTargetY
 	sbc		tgtY
-	;--If this is a positive number,
-	;  we are to the below of the player, and we need to run.
-	;  otherwise we are to the up, and need to run
-	bpl		.dontRunDown
-.doRunDown
+	bpl		.doRunDown
 	lda 	tgtY
-	adc		babySpeed
-	adc		babySpeed
+	sbc		babySpeed
+	sbc		babySpeed
 	sta		tgtY
 	jmp		.vertRunDone
-.dontRunDown
+.doRunDown
 	lda		tgtY
-	sbc		babySpeed
-	sbc		babySpeed
+	adc		babySpeed
+	adc		babySpeed
 	sta		tgtY
 .vertRunDone
 	;20 to 132
@@ -497,14 +586,7 @@ MainLoop
 	lda		#38
 .tgtYNotTooSmall
 	sta		tgtY
-	
-	
-	
-	lda		totalDist
-	cmp		#4
-	bpl		.notVeryClose
-
-.notVeryClose
+.noDoY
 ;---END AI CODE	
 	
 	
@@ -522,7 +604,7 @@ MainLoop
 .yesBG
 	lda		#$FF
 	sta		bgMask
-	lda		#2
+	lda		#1 ;--For now, stick with slow baby
 	sta		babySpeed
 .doneBGMask
 	
