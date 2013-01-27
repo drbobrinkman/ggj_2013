@@ -127,6 +127,7 @@ timerTicks			.byte
 scorePF1	.byte
 scorePF2	.byte
 scoreColor  .byte
+madeMusic   .byte
 
 ;------------------------------------------------
 ; Start of ROM
@@ -249,6 +250,7 @@ RealStart
 	sta		timerTicks
 	sta		scorePF1
 	sta		scorePF2
+	sta		madeMusic
 	
 	lda		#2
 	sta		maxHBVolume
@@ -274,8 +276,10 @@ MainLoop
 	;--Handle reset switch
 	lda		SWCHB
 	and		#%00000001
-	beq		RealStart
-	
+	bne		.notRealStart
+	jmp		RealStart
+.notRealStart	
+
 	;** Increment ticks
 	lda		timerTicks
 	clc
@@ -502,9 +506,9 @@ MainLoop
 	sta		maxHBVolume
 	
 	;--Points are scored when maxHBVolume is 0E or 0F. Lose points when < 06
-	cmp		#$05 ;;TODO change back to 5 when done testing
+	cmp		#$04 ;;TODO change back to 5 when done testing
 	bmi		.loseScore
-	cmp		#$08 ;;TODO change back to 8 when done testing
+	cmp		#$07 ;;TODO change back to 8 when done testing
 	bmi		.doneScore
 	inc		score
 	jmp		.doneScore
@@ -736,6 +740,8 @@ MainLoop
 	sbc		#SCORE_FOR_SONG
 	lsr
 	sta		songVol
+	lda		#1
+	sta		madeMusic
 .doneSongVol
 	
 	;Score color changes at each minute
@@ -783,6 +789,19 @@ MainLoop
 .scoreDone2	
 	sta		scorePF1
 	
+	
+	;--Game is over if you have been with baby, then
+	;  lose her again
+	
+	;--You cannot lose until you make music
+	lda		madeMusic
+	beq		.notALoser
+	;--If score falls too low, you lose
+	lda		score
+	cmp 	#SCORE_FOR_BG
+	bpl		.notALoser
+	jmp		Start
+.notALoser
 	
 .waitForVBlank
 	lda		INTIM
