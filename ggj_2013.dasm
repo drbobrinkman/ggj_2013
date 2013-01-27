@@ -412,7 +412,7 @@ MainLoop
 	;--Points are scored when maxHBVolume is 0E or 0F. Lose points when < 06
 	cmp		#$04
 	bmi		.loseScore
-	cmp		#$07
+	cmp		#$08
 	bmi		.doneScore
 	inc		score
 	jmp		.doneScore
