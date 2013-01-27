@@ -117,6 +117,7 @@ bgMask .byte
 
 totalDist .byte
 babySpeed .byte
+aiDir	  .byte
 ;------------------------------------------------
 ; Start of ROM
 ;------------------------------------------------
@@ -231,7 +232,8 @@ RealStart
 	sta		musicTicks
 	sta 	musicCount
 	sta		envelope
-	 
+	sta		aiDir
+	
 	lda		#2
 	sta		maxHBVolume
 
@@ -473,7 +475,7 @@ MainLoop
 	sta		maxHBVolume
 	
 	;--Points are scored when maxHBVolume is 0E or 0F. Lose points when < 06
-	cmp		#$04
+	cmp		#$05
 	bmi		.loseScore
 	cmp		#$08
 	bmi		.doneScore
@@ -506,9 +508,17 @@ MainLoop
 	sta		COLUP1
 .doneBaby
 
-
+	;---Which AI version we used is based on what stage
+	lda		score
+	cmp		#SCORE_TO_SEE_BABY
+	bpl		.visibleBabyEvasionCode
 
 	;----AI EVASION CODE
+
+	;--AI CODE for invisible baby stage
+	;--When the baby is invisible, stay put!
+	jmp		.endAICode
+
 		
 ;	lda		plrX
 ;	sbc		tgtX
@@ -567,7 +577,8 @@ MainLoop
 ;	lda		#38
 ;.tgtYNotTooSmall
 ;	sta		tgtY
-	
+
+.visibleBabyEvasionCode	
 	;--GOAL: Reach the point diametrically opposite from the player
 	lda		plrX
 	cmp		#76
@@ -650,8 +661,10 @@ MainLoop
 .tgtYNotTooSmall
 	sta		tgtY
 .noDoY
-;---END AI CODE	
+	jmp		.endAICode
 	
+.endAICode
+;---END AI CODE	
 	
 	
 	
