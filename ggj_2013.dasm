@@ -254,7 +254,7 @@ MainLoop
 	bne		.notDown
 
 	lda		plrY
-	cmp		#36
+	cmp		#38
 	beq		.notDown
 	sbc		#2
 	sta		plrY
@@ -815,7 +815,7 @@ DrawScreen
 ;------------------------------------------------
 	;***** ROM tables go here
 	
-	ORG $FC00
+	ORG $FE00
 .hmove_table
 	.byte HMOVE_0 
 	.byte HMOVE_M01         
@@ -834,85 +834,7 @@ DrawScreen
 	.byte HMOVE_M14          
 	.byte HMOVE_M15
 	
-.x_sin_table
-	.byte	#112
-	.byte	#112
-	.byte	#111
-	.byte	#111
-	.byte	#110
-	.byte	#109
-	.byte	#107
-	.byte	#105
-	.byte	#104
-	.byte	#101
-	.byte	#99
-	.byte	#97
-	.byte	#94
-	.byte	#91
-	.byte	#88
-	.byte	#85
-	.byte	#82
-	.byte	#79
-	.byte	#76
-	.byte	#73
-	.byte	#70
-	.byte	#67
-	.byte	#64
-	.byte	#61
-	.byte	#58
-	.byte	#55
-	.byte	#53
-	.byte	#51
-	.byte	#48
-	.byte	#47
-	.byte	#45
-	.byte	#43
-	.byte	#42
-	.byte	#41
-	.byte	#41
-	.byte	#40
-	.byte	#40
-	
-.y_cos_table
-	.byte	#164
-	.byte	#164
-	.byte	#163
-	.byte	#162
-	.byte	#160
-	.byte	#158
-	.byte	#155
-	.byte	#152
-	.byte	#149
-	.byte	#145
-	.byte	#141
-	.byte	#137
-	.byte	#132
-	.byte	#127
-	.byte	#122
-	.byte	#117
-	.byte	#111
-	.byte	#106
-	.byte	#100
-	.byte	#94
-	.byte	#89
-	.byte	#83
-	.byte	#78
-	.byte	#73
-	.byte	#68
-	.byte	#63
-	.byte	#59
-	.byte	#55
-	.byte	#51
-	.byte	#48
-	.byte	#45
-	.byte	#42
-	.byte	#40
-	.byte	#38
-	.byte	#37
-	.byte	#36
-	.byte	#36
-	
-	ORG $FD00
+	;ORG $FE00
 .song
 	.byte NOTE_D | NOTE_ATTACK
 	.byte NOTE_D
@@ -1058,7 +980,7 @@ DrawScreen
 	.byte NOTE_E
 	.byte NOTE_E
 
-	ORG $FE00
+	;ORG $FE00
 .bgcolors
 	.byte #$46
 	.byte #$46
