@@ -230,7 +230,7 @@ MainLoop
 	bne		.notUp
 
 	lda		plrY
-	cmp		#164
+	cmp		#162
 	beq		.notUp
 	adc		#2
 	sta		plrY
@@ -338,19 +338,7 @@ MainLoop
 	sta		musicCount
 	
 .notCountTime
-	
-	
-	;---Update target position
-	lda		tgtX
-	adc		#1
-	cmp		#132
-	bne		.okCol
-	lda		#20	
-.okCol
-	sta		tgtX
-
-	
-	
+		
 	lda		musicTicks
 	bne		.notAttack ;--Cannot be an attack if it isn't a new count
 	
@@ -427,6 +415,65 @@ MainLoop
 	lda		#$8c
 	sta		COLUP1
 .doneBaby
+
+
+	lda		plrX
+	sbc		tgtX
+	;--If this is a small positive number,
+	;  we are to the left of the player, and we need to run.
+	;  If it is a small positive number, we are to the left, and need to run
+	bpl		.dontRunRight
+	;bvs		.dontRunRight
+	inc 	tgtX
+	jmp		.horizRunDone
+.dontRunRight
+	dec		tgtX
+.horizRunDone
+	;20 to 132
+	lda		tgtX
+	cmp		#132
+	bmi		.tgtXNotTooBig
+	lda		#132
+.tgtXNotTooBig
+	cmp		#20
+	bpl		.tgtXNotTooSmall
+	lda		#20
+.tgtXNotTooSmall
+	sta		tgtX
+	
+	
+	
+	lda		tgtY
+	lsr
+	sta		temp	
+	lda		plrY
+	lsr
+	sbc		temp
+	;--If this is a positive number,
+	;  we are to the below of the player, and we need to run.
+	;  otherwise we are to the up, and need to run
+	bpl		.dontRunDown
+.doRunDown
+	inc 	tgtY
+	inc		tgtY
+	jmp		.vertRunDone
+.dontRunDown
+	dec		tgtY
+	dec		tgtY
+.vertRunDone
+	;20 to 132
+	lda		tgtY
+	cmp		#162
+	bmi		.tgtYNotTooBig
+	lda		#162
+.tgtYNotTooBig
+	cmp		#36
+	bpl		.tgtYNotTooSmall
+	lda		#36
+.tgtYNotTooSmall
+	sta		tgtY
+	
+	
 	
 .waitForVBlank
 	lda		INTIM
