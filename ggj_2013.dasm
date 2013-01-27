@@ -108,6 +108,8 @@ temp	.byte
 
 bgMask .byte
 
+totalDist .byte
+babySpeed .byte
 ;------------------------------------------------
 ; Start of ROM
 ;------------------------------------------------
@@ -165,7 +167,8 @@ Start
 
 	lda		#0
 	sta		score
-
+	lda		#1
+	sta		babySpeed
 	
 ;------------------------------------------------
 ; Vertical Blank
@@ -384,6 +387,7 @@ MainLoop
 	eor		#$FF
 .isPositiveY
 	adc		temp
+	sta		totalDist
 .adjustVolume
 	dec 	maxHBVolume
 	dec		maxHBVolume
@@ -428,17 +432,23 @@ MainLoop
 .doneBaby
 
 
+
+	;----AI EVASION CODE
+		
 	lda		plrX
 	sbc		tgtX
 	;--If this is a small positive number,
 	;  we are to the left of the player, and we need to run.
 	;  If it is a small positive number, we are to the left, and need to run
 	bpl		.dontRunRight
-	;bvs		.dontRunRight
-	inc 	tgtX
+	lda 	tgtX
+	adc		babySpeed
+	sta		tgtX
 	jmp		.horizRunDone
 .dontRunRight
-	dec		tgtX
+	lda		tgtX
+	sbc		babySpeed
+	sta		tgtX
 .horizRunDone
 	;20 to 132
 	lda		tgtX
@@ -460,12 +470,16 @@ MainLoop
 	;  otherwise we are to the up, and need to run
 	bpl		.dontRunDown
 .doRunDown
-	inc 	tgtY
-	inc		tgtY
+	lda 	tgtY
+	adc		babySpeed
+	adc		babySpeed
+	sta		tgtY
 	jmp		.vertRunDone
 .dontRunDown
-	dec		tgtY
-	dec		tgtY
+	lda		tgtY
+	sbc		babySpeed
+	sbc		babySpeed
+	sta		tgtY
 .vertRunDone
 	;20 to 132
 	lda		tgtY
@@ -473,11 +487,23 @@ MainLoop
 	bmi		.tgtYNotTooBig
 	lda		#162
 .tgtYNotTooBig
-	cmp		#36
+	cmp		#38
 	bpl		.tgtYNotTooSmall
-	lda		#36
+	lda		#38
 .tgtYNotTooSmall
 	sta		tgtY
+	
+	
+	
+	lda		totalDist
+	cmp		#4
+	bpl		.notVeryClose
+
+.notVeryClose
+;---END AI CODE	
+	
+	
+	
 	
 	
 	lda		score
@@ -485,10 +511,14 @@ MainLoop
 	bpl		.yesBG
 	lda		#0
 	sta		bgMask
+	lda		#1
+	sta		babySpeed
 	jmp		.doneBGMask
 .yesBG
 	lda		#$FF
 	sta		bgMask
+	lda		#2
+	sta		babySpeed
 .doneBGMask
 	
 	
