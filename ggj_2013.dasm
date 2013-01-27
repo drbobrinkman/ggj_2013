@@ -73,6 +73,12 @@ NOTE_ATTACK = 32
 
 TICKS_PER_COUNT = 24
 
+SCORE_FOR_BG = 64
+SCORE_FOR_SONG = 96
+
+PLAYER_COLOR = $8c
+BABY_COLOR = $6c
+
 ;------------------------------------------------
 ; RAM
 ;------------------------------------------------
@@ -88,17 +94,19 @@ musicTicks .byte
 musicCount .byte
 
 envelope		  .byte
+songVol	.byte
 
 bgIndex .byte
 
 tgtX	.byte
 tgtY	.byte
-tgtColor .byte
 
 score   .byte
 
 maxHBVolume .byte
 temp	.byte
+
+bgMask .byte
 
 ;------------------------------------------------
 ; Start of ROM
@@ -113,7 +121,7 @@ Start
 	sta		ticks	;initialize ticks	
 	
 	;Initialize colors		
-	lda		#$6C ;Player color
+	lda		#PLAYER_COLOR ;Player color
 	sta		COLUP0
 	
 	;Initialize player to center of the screen
@@ -122,8 +130,10 @@ Start
 	lda		#92
 	sta		tgtY
 	lda		#0
-	sta		tgtColor
+
 	sta		COLUP1
+	sta		bgMask
+	sta		songVol
 	
 	lda     #76
 	sta		plrX
@@ -246,17 +256,9 @@ MainLoop
 	sbc		#2
 	sta		plrY
 .notDown
+	jmp		$F100
 	
-	
-	;ldy		joyX
-	;lda		.x_sin_table,y
-	;sta		plrX
-	
-	;ldy		joyY
-	;lda		.y_cos_table,y
-	;sta		plrY
-	
-	
+	ORG $F100	
 	;** Place the player sprite
 	sta 	WSYNC
 	nop
@@ -348,8 +350,8 @@ MainLoop
 	;Is this the start of a new note?
 	and		NOTE_ATTACK
 	beq		.notAttack
-	;;lda		score	;Starting volume level
-	;;sta		envelope
+	lda		songVol	;Starting volume level
+	sta		envelope
 	
 	
 .notAttack
@@ -421,7 +423,7 @@ MainLoop
 	sta		COLUP1
 	jmp 	.doneBaby
 .visibleBaby
-	lda		#$8c
+	lda		#BABY_COLOR
 	sta		COLUP1
 .doneBaby
 
@@ -478,6 +480,31 @@ MainLoop
 	sta		tgtY
 	
 	
+	lda		score
+	cmp		#SCORE_FOR_BG
+	bpl		.yesBG
+	lda		#0
+	sta		bgMask
+	jmp		.doneBGMask
+.yesBG
+	lda		#$FF
+	sta		bgMask
+.doneBGMask
+	
+	
+	lda		score
+	cmp		#SCORE_FOR_SONG
+	bpl		.yesSongVol
+	lda		#0
+	sta		songVol
+	jmp		.doneSongVol
+.yesSongVol
+	lda		score
+	sbc		#SCORE_FOR_SONG
+	lsr
+	sta		songVol
+.doneSongVol
+	
 	
 .waitForVBlank
 	lda		INTIM
@@ -498,6 +525,7 @@ DrawScreen
 .scanline	
 	ldy		bgIndex
 	lda		.bgcolors,y
+	and		bgMask
 	sta		COLUBK
 	
 	txa
@@ -534,6 +562,7 @@ DrawScreen
 .scanline2
 	ldy		bgIndex
 	lda		.bgcolors,y
+	and		bgMask
 	sta		COLUBK
 
 	txa
@@ -585,6 +614,7 @@ DrawScreen
 .scanline3
 	ldy		bgIndex
 	lda		.bgcolors,y
+	and		bgMask
 	sta		COLUBK
 
 	txa
@@ -636,6 +666,7 @@ DrawScreen
 .scanline4
 	ldy		bgIndex
 	lda		.bgcolors,y
+	and		bgMask
 	sta		COLUBK
 	
 	txa
@@ -685,6 +716,7 @@ DrawScreen
 .scanline5
 	ldy		bgIndex
 	lda		.bgcolors,y
+	and		bgMask
 	sta		COLUBK
 
 	txa
