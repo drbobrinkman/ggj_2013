@@ -394,7 +394,7 @@ MainLoop
 	;--Points are scored when maxHBVolume is 0E or 0F. Lose points when < 06
 	cmp		#$06
 	bmi		.loseScore
-	cmp		#$0e
+	cmp		#$09
 	bmi		.doneScore
 	inc		score
 	jmp		.doneScore
@@ -403,6 +403,15 @@ MainLoop
 	bpl .doneScore
 	inc score ;--Correct if the score went negative
 .doneScore
+	lda	score
+	cmp	#127 ;--127 is the max score, 0 is the min
+	bne	.scoreNotTooBig
+	dec score
+.scoreNotTooBig
+	cmp	#255
+	bne	.scoreNotTooSmall
+	inc score
+.scoreNotTooSmall
 	
 	;--If score is high enough, make the "baby" visible
 	lda		score
