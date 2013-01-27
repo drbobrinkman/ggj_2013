@@ -195,9 +195,15 @@ Start
 AttractMainLoop
 	lda		#0		;Start the vertical blank
 	sta		VBLANK
-	VERTICAL_SYNC
-    lda     #43
-    sta     TIM64T ;This sets a timer that we can check via INTIM
+	lda 	#2
+	sta		VSYNC
+
+	sta		WSYNC
+	sta		WSYNC
+	sta		WSYNC
+
+	lda		#0
+	sta		VSYNC
 
 	;***** Vertical Blank code goes here
 	;--Handle reset switch
@@ -239,15 +245,25 @@ AttractMainLoop
 .stoloo2
 	sty looper
 
-.attractWaitForVBlank
-	lda		INTIM
-	bne		.attractWaitForVBlank
-	sta		WSYNC
+	nop
+	nop
+	nop
 
+	ldx  #35
+.attractWaitForVBlank
+	sta		WSYNC
+	dex
+	bne		.attractWaitForVBlank
+	;sta		WSYNC
+	jmp		AttractKernel
 
 ;------------------------------------------------
 ; Kernel
 ;------------------------------------------------	
+	ORG $F100
+AttractKernel
+	sta	WSYNC
+
 	lda #LOGO_COLOR	;2
 	sta COLUBK  	;3
 	lda #0	;2
