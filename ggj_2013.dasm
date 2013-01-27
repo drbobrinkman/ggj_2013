@@ -442,13 +442,8 @@ MainLoop
 	sta		tgtX
 	
 	
-	
-	lda		tgtY
-	lsr
-	sta		temp	
 	lda		plrY
-	lsr
-	sbc		temp
+	sbc		tgtY
 	;--If this is a positive number,
 	;  we are to the below of the player, and we need to run.
 	;  otherwise we are to the up, and need to run
