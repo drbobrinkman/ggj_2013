@@ -744,8 +744,18 @@ DrawScreen
     ; Kernel goes here.	
 	;Pixel aspect ratio is 12:7
 	
-	;---Top zone, no player/target
-	ldx		#28+1		 	
+
+	;--Score and other feedback to player goes here
+	ldx		#12+1		 	
+.scoreScanline
+	dex
+	sta		WSYNC
+	bne		.scoreScanline
+
+
+
+;---Top zone, no player/target
+	ldx		#16
 .scanline	
 	ldy		bgIndex
 	lda		.bgcolors,y
