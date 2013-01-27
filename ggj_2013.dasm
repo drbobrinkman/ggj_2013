@@ -100,6 +100,7 @@ BABY_COLOR = $6c
 H_EDGE = 132
 V_EDGE = 162
 
+;TODO: If you change this, the logo screen rolls. WTF??!
 LOGO_COLOR     = $44
 ;Height of the image to display
 H_LOGO    = 55
