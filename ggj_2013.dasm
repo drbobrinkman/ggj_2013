@@ -124,6 +124,10 @@ timeSpentWithBabySec .byte
 timeSpentWithBabyMin .byte
 timerTicks			.byte
 
+scorePF1	.byte
+scorePF2	.byte
+scoreColor  .byte
+
 ;------------------------------------------------
 ; Start of ROM
 ;------------------------------------------------
@@ -202,6 +206,7 @@ RealStart
 	;Initialize colors		
 	lda		#PLAYER_COLOR ;Player color
 	sta		COLUP0
+	sta		scoreColor ;--Use player color for score color too
 	
 	;Initialize player to center of the screen
 	lda		#76
@@ -242,6 +247,9 @@ RealStart
 	sta		timeSpentWithBabySec
 	sta		timeSpentWithBabyMin
 	sta		timerTicks
+	sta		scorePF1
+	sta		scorePF2
+	
 	lda		#2
 	sta		maxHBVolume
 
@@ -249,6 +257,7 @@ RealStart
 	sta		score
 	lda		#1
 	sta		babySpeed
+	sta		CTRLPF ;--Want playfield reflection
 	
 ;------------------------------------------------
 ; Vertical Blank
@@ -493,9 +502,9 @@ MainLoop
 	sta		maxHBVolume
 	
 	;--Points are scored when maxHBVolume is 0E or 0F. Lose points when < 06
-	cmp		#$04 ;;TODO change back to 5 when done testing
+	cmp		#$05 ;;TODO change back to 5 when done testing
 	bmi		.loseScore
-	cmp		#$07 ;;TODO change back to 8 when done testing
+	cmp		#$08 ;;TODO change back to 8 when done testing
 	bmi		.doneScore
 	inc		score
 	jmp		.doneScore
@@ -729,6 +738,51 @@ MainLoop
 	sta		songVol
 .doneSongVol
 	
+	;Score color changes at each minute
+	lda		timeSpentWithBabyMin
+	asl
+	asl
+	asl
+	asl
+	and		#%11110000
+	ora		#$0A
+	sta		scoreColor
+	
+	;Color in 1 bar for each 4 seconds
+	lda		#%00000000
+	sta		scorePF2
+	sta		scorePF1
+	lda		timeSpentWithBabySec
+	adc		#4
+	lsr
+	;lsr
+	lsr
+	tay
+	lda		scorePF2
+.scoreCntLoop
+	dey
+	bmi		.scoreDone
+	lsr
+	bcc		.noPF1
+	inc		scorePF1
+.noPF1
+	ora		#%10000000
+	jmp		.scoreCntLoop
+.scoreDone	
+	sta		scorePF2
+	
+	lda		scorePF1
+	tay
+	lda		#0
+.scoreCntLoop2
+	dey
+	bmi		.scoreDone2
+	asl
+	ora		#%00000001
+	jmp		.scoreCntLoop2
+.scoreDone2	
+	sta		scorePF1
+	
 	
 .waitForVBlank
 	lda		INTIM
@@ -746,12 +800,23 @@ DrawScreen
 	
 
 	;--Score and other feedback to player goes here
-	ldx		#12+1		 	
+	lda		scorePF1
+	sta		PF1
+	lda		scorePF2
+	sta		PF2
+	lda		scoreColor
+	sta		COLUPF
+	ldx		#11+1		 	
 .scoreScanline
 	dex
 	sta		WSYNC
 	bne		.scoreScanline
 
+;--Clear playfield
+	lda		#0
+	sta		PF2
+	sta		PF1
+	sta		WSYNC
 
 
 ;---Top zone, no player/target
