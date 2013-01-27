@@ -12,6 +12,8 @@ How to Play
 -----------
 1-Player, play with the Atari Joystick controller
 
+Start the game by pressing the "reset" switch.
+
 Your goal is the listen to the heartbeat of your un-born baby for as long as possible. You control an ultrasound probe (blue square) using the joystick.
 
 The baby (pink square) is initially hidden, until you can find her with the probe. Move around and listen to the heartbeat to track her down.
