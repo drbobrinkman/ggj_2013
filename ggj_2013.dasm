@@ -181,6 +181,9 @@ MainLoop
     sta     TIM64T ;This sets a timer that we can check via INTIM
 
 	;***** Vertical Blank code goes here
+	lda		SWCHB
+	and		#%00000001
+	beq		Start
 	
 	;** Increment ticks
 	lda		ticks
