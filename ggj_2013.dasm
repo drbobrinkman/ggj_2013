@@ -181,6 +181,8 @@ MainLoop
     sta     TIM64T ;This sets a timer that we can check via INTIM
 
 	;***** Vertical Blank code goes here
+	
+	;--Handle reset switch
 	lda		SWCHB
 	and		#%00000001
 	beq		Start
