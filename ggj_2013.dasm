@@ -122,8 +122,71 @@ babySpeed .byte
 ;------------------------------------------------
 	SEG   Bank0
 	ORG   $F000       	; 4k ROM start point
+Start
+	CLEAN_START ; Clear RAM and Registers
+;------------------------------------------------
+; Vertical Blank
+;------------------------------------------------
+AttractMainLoop
+	lda		#0		;Start the vertical blank
+	sta		VBLANK
+	VERTICAL_SYNC
+    lda     #43
+    sta     TIM64T ;This sets a timer that we can check via INTIM
 
-Start 
+	;***** Vertical Blank code goes here
+	;--Handle reset switch
+	lda		SWCHB
+	and		#%00000001
+	beq		RealStart
+
+.attractWaitForVBlank
+	lda		INTIM
+	bne		.attractWaitForVBlank
+	sta		WSYNC
+
+
+;------------------------------------------------
+; Kernel
+;------------------------------------------------	
+AttractDrawScreen
+
+    ; Kernel goes here.	
+	;Pixel aspect ratio is 12:7
+
+	;---Top zone, no player/target
+	ldx		#192+1		 	
+.attractScanline
+	dex
+	sta		WSYNC
+	bne		.attractScanline				
+;--end bottom zone			
+
+;------------------------------------------------
+; Overscan
+;------------------------------------------------
+	lda		#%01000010
+	sta		VBLANK
+    lda		#36
+    sta		TIM64T
+
+	;***** Overscan Code goes here
+
+.attractWaitForOverscan
+	lda     INTIM
+	bne     .attractWaitForOverscan
+	jmp		AttractMainLoop
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+RealStart 
 	CLEAN_START			; Clear RAM and Registers
 	
 	lda		#0
@@ -192,7 +255,7 @@ MainLoop
 	;--Handle reset switch
 	lda		SWCHB
 	and		#%00000001
-	beq		Start
+	beq		RealStart
 	
 	;** Increment ticks
 	lda		ticks
@@ -271,9 +334,9 @@ MainLoop
 	sbc		#2
 	sta		plrY
 .notDown
-	jmp		$F100
+	;jmp		$F100
 	
-	ORG $F100	
+	;ORG $F100	
 	;** Place the player sprite
 	sta 	WSYNC
 	nop
