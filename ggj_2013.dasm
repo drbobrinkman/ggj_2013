@@ -96,6 +96,8 @@ SCORE_FOR_SONG = 96
 
 PLAYER_COLOR = $8c
 BABY_COLOR = $6c
+SCORE_FG   = $6c
+SCORE_BG   = $00
 
 H_EDGE = 132
 V_EDGE = 162
@@ -152,6 +154,25 @@ madeMusic   .byte
 
 ;useless variable(?), but no time to remove it
 looper .byte
+
+black .byte
+tmpx  .byte
+babyColor .byte
+
+;---For use with indirect addressing in the scoreboard
+temp1LSB .byte
+temp1MSB .byte
+temp2LSB .byte
+temp2MSB .byte
+temp3LSB .byte
+temp3MSB .byte
+temp4LSB .byte
+temp4MSB .byte
+temp5LSB .byte
+temp5MSB .byte
+temp6LSB .byte
+temp6MSB .byte
+
 ;------------------------------------------------
 ; Start of ROM
 ;------------------------------------------------
@@ -189,6 +210,8 @@ Start
 	;sta HMCLR                  ; 3 = @18   clear horizontal movements
 	sta REFP0                  ; 3 = @21
 	sta REFP1                  ; 3 = @24
+	
+
 	
 ;------------------------------------------------
 ; Vertical Blank
@@ -488,6 +511,7 @@ RealStart
 	sta		scorePF1
 	sta		scorePF2
 	sta		madeMusic
+	sta		black
 	
 	lda		#2
 	sta		maxHBVolume
@@ -497,6 +521,14 @@ RealStart
 	lda		#1
 	sta		babySpeed
 	sta		CTRLPF ;--Want playfield reflection
+	
+	lda	#$FC		;---This needs to be changed if ROM layout is changed
+	sta	temp1MSB
+	sta	temp2MSB
+	sta	temp3MSB
+	sta	temp4MSB
+	sta	temp5MSB
+	sta	temp6MSB
 	
 ;------------------------------------------------
 ; Vertical Blank
@@ -711,11 +743,11 @@ MainLoop
 	cmp		#SCORE_TO_SEE_BABY
 	bpl		.visibleBaby
 	lda		#$00
-	sta		COLUP1
+	sta		babyColor
 	jmp 	.doneBaby
 .visibleBaby
 	lda		#BABY_COLOR
-	sta		COLUP1
+	sta		babyColor
 .doneBaby
 
 	;---Which AI version we used is based on what stage
@@ -971,8 +1003,37 @@ MainLoop
 	sta		scorePF1
 	
 	
-	;--Game is over if you have been with baby, then
-	;  lose her again
+	ldx #0
+	lda LSBS,x  ;(4)
+	sta temp5LSB  ;(3) = 50
+
+	ldx #1
+	lda LSBS,x  ;(4) = 61
+	sta temp6LSB;(3) 
+
+	ldx #2
+	lda LSBS,x  ;(4)
+	sta temp3LSB  ;(3) = @8
+
+	ldx #3
+	lda LSBS,x  ;(4) = 19
+	sta temp4LSB;(3) = 22
+
+	ldx #4
+	lda LSBS,x  ;(4)
+	sta temp1LSB  ;(3) = 42
+
+	ldx #5
+	lda LSBS,x  ;(4) = 53
+	sta temp2LSB;(3) = 56
+	
+	;----This is setup for 6-character score display
+	lda		#1
+	sta		VDELP0
+	sta		VDELP1	
+	
+;--Game is over if you have been with baby, then
+;  lose her again
 	
 	;--You cannot lose until you make music
 	lda		madeMusic
@@ -983,6 +1044,9 @@ MainLoop
 	bpl		.notALoser
 	jmp		Start
 .notALoser
+	
+	
+	
 	
 .waitForVBlank
 	lda		INTIM
@@ -998,20 +1062,387 @@ DrawScreen
     ; Kernel goes here.	
 	;Pixel aspect ratio is 12:7
 	
-
-	;--Score and other feedback to player goes here
-	lda		scorePF1
-	sta		PF1
-	lda		scorePF2
-	sta		PF2
-	lda		scoreColor
-	sta		COLUPF
-	ldx		#11+1		 	
-.scoreScanline
-	dex
+;--Draw the score/timer
 	sta		WSYNC
-	bne		.scoreScanline
 
+	lda		#SCORE_BG		;(2)
+	sta		COLUBK			;(3) = @5
+
+	lda		#THREE_COPIES	;(2)
+	sta		NUSIZ0			;(3)
+	sta		NUSIZ1			;(3) = @13	
+
+	lda     #HMOVE_M01		;(2)
+	sta		HMP0			;(3) = @18
+	lda		#HMOVE_M11		;(2)
+	;---- Aiming for pixel 69 for RESP0, which is cycle 23
+	sta 	RESP0			;(3) = @23 = pixel 69
+	sta		HMP1			;(3)
+	sta		RESP1			;(3) = @29 = pixel 87. Aiming for 77,
+							;                      so use HMOVE
+	lda		#SCORE_FG		;(2)
+	sta		COLUP0			;(3) 
+	sta		COLUP1			;(3) = @37
+
+	ldy		#0				;(2)
+	lda		(temp1LSB),y	;(5)	
+	sta		GRP0			;(3) = @47
+
+	lda		(temp2LSB),y	;(5)
+	sta		GRP1			;(3) = @55
+	;---Setup for the next loop
+	lda		(temp3LSB),y	;(5)
+	sta		GRP0			;(3) = @63
+
+	lda		(temp4LSB),y	;(5) = @68
+	tax						;(2) = @70
+	sta 	HMOVE			;(3) = @73	
+
+	lda		black
+	sta		COLUPF
+
+	lda		(temp5LSB),y	;(5) = @2
+	sta		tmpx			;(3)
+	lda		(temp6LSB),y	;(5)
+	ldy		tmpx			;(3)
+
+	nop
+	nop
+	nop	;@25
+
+	;---- need to wait for the beam to clear the first sprite,
+	; which will be at pixel 76, clock 25
+	stx		GRP1			;(3)
+	sty		GRP0			;(3)
+	sta		GRP1			;(3)
+	stx		GRP0			;(3) @37
+
+
+	nop
+	nop
+	nop
+
+
+	ldy		#1				;(2)
+	lda		(temp1LSB),y	;(5)	
+	sta		GRP0			;(3) = @47
+	lda		(temp2LSB),y	;(5)
+	sta		GRP1			;(3) = @55
+	lda		(temp3LSB),y	;(5)
+	sta		GRP0			;(3) = @63	
+	lda		(temp4LSB),y	;(5) = @68
+	tax						;(2) = @70
+
+	lda		#0
+	sta		PF1
+
+	lda		(temp5LSB),y	;(5) = @75
+	sta		tmpx			;(3) = @2
+	lda		(temp6LSB),y	;(5)
+	ldy		tmpx			;(3) = @10
+
+	nop
+	nop	;@25
+
+	;---- need to wait for the beam to clear the first sprite,
+	; which will be at pixel 76, clock 25
+	stx		GRP1			;(3)
+	sty		GRP0			;(3)
+	sta		GRP1			;(3)
+	stx		GRP0			;(3) @37
+
+
+	lda		black
+	sta		PF1
+
+
+	ldy		#2				;(2)
+	lda		(temp1LSB),y	;(5)	
+	sta		GRP0			;(3) = @47
+	lda		(temp2LSB),y	;(5)
+	sta		GRP1			;(3) = @55
+	lda		(temp3LSB),y	;(5)
+	sta		GRP0			;(3) = @63	
+	lda		(temp4LSB),y	;(5) = @68
+	tax						;(2) = @70
+
+	lda		#0
+	sta		PF1
+
+	lda		(temp5LSB),y	;(5) = @75
+	sta		tmpx			;(3) = @2
+	lda		(temp6LSB),y	;(5)
+	ldy		tmpx			;(3) = @10
+
+	nop
+	nop	;@25
+
+	;---- need to wait for the beam to clear the first sprite,
+	; which will be at pixel 76, clock 25
+	stx		GRP1			;(3)
+	sty		GRP0			;(3)
+	sta		GRP1			;(3)
+	stx		GRP0			;(3) @37
+
+
+	lda		black
+	sta		PF1
+
+
+	ldy		#3				;(2)
+	lda		(temp1LSB),y	;(5)	
+	sta		GRP0			;(3) = @47
+	lda		(temp2LSB),y	;(5)
+	sta		GRP1			;(3) = @55
+	lda		(temp3LSB),y	;(5)
+	sta		GRP0			;(3) = @63	
+	lda		(temp4LSB),y	;(5) = @68
+	tax						;(2) = @70
+
+	lda		#0
+	sta		PF1
+
+	lda		(temp5LSB),y	;(5) = @75
+	sta		tmpx			;(3) = @2
+	lda		(temp6LSB),y	;(5)
+	ldy		tmpx			;(3) = @10
+
+	nop
+	nop	;@25
+
+	;---- need to wait for the beam to clear the first sprite,
+	; which will be at pixel 76, clock 25
+	stx		GRP1			;(3)
+	sty		GRP0			;(3)
+	sta		GRP1			;(3)
+	stx		GRP0			;(3) @37
+
+
+	lda		black
+	sta		PF1
+
+
+	ldy		#4				;(2)
+	lda		(temp1LSB),y	;(5)	
+	sta		GRP0			;(3) = @47
+	lda		(temp2LSB),y	;(5)
+	sta		GRP1			;(3) = @55
+	lda		(temp3LSB),y	;(5)
+	sta		GRP0			;(3) = @63	
+	lda		(temp4LSB),y	;(5) = @68
+	tax						;(2) = @70
+
+	lda		#0
+	sta		PF1
+
+	lda		(temp5LSB),y	;(5) = @75
+	sta		tmpx			;(3) = @2
+	lda		(temp6LSB),y	;(5)
+	ldy		tmpx			;(3) = @10
+
+	nop
+	nop	;@25
+
+	;---- need to wait for the beam to clear the first sprite,
+	; which will be at pixel 76, clock 25
+	stx		GRP1			;(3)
+	sty		GRP0			;(3)
+	sta		GRP1			;(3)
+	stx		GRP0			;(3) @37
+
+
+
+	nop
+	nop
+	nop
+
+
+	ldy		#5				;(2)
+	lda		(temp1LSB),y	;(5)	
+	sta		GRP0			;(3) = @47
+	lda		(temp2LSB),y	;(5)
+	sta		GRP1			;(3) = @55
+	lda		(temp3LSB),y	;(5)
+	sta		GRP0			;(3) = @63	
+	lda		(temp4LSB),y	;(5) = @68
+	tax						;(2) = @70
+
+	lda		#0
+	sta		PF1
+
+	lda		(temp5LSB),y	;(5) = @75
+	sta		tmpx			;(3) = @2
+	lda		(temp6LSB),y	;(5)
+	ldy		tmpx			;(3) = @10
+
+	nop
+	nop	;@25
+
+	;---- need to wait for the beam to clear the first sprite,
+	; which will be at pixel 76, clock 25
+	stx		GRP1			;(3)
+	sty		GRP0			;(3)
+	sta		GRP1			;(3)
+	stx		GRP0			;(3) @37
+
+
+	lda		black
+	sta		COLUPF
+
+
+	ldy		#6				;(2)
+	lda		(temp1LSB),y	;(5)	
+	sta		GRP0			;(3) = @47
+	lda		(temp2LSB),y	;(5)
+	sta		GRP1			;(3) = @55
+	lda		(temp3LSB),y	;(5)
+	sta		GRP0			;(3) = @63	
+	lda		(temp4LSB),y	;(5) = @68
+	tax						;(2) = @70
+
+	lda		#0
+	sta		PF1
+
+	lda		(temp5LSB),y	;(5) = @75
+	sta		tmpx			;(3) = @2
+	lda		(temp6LSB),y	;(5)
+	ldy		tmpx			;(3) = @10
+
+	nop
+	nop	;@25
+
+	;---- need to wait for the beam to clear the first sprite,
+	; which will be at pixel 76, clock 25
+	stx		GRP1			;(3)
+	sty		GRP0			;(3)
+	sta		GRP1			;(3)
+	stx		GRP0			;(3) @37
+
+
+	lda		black
+	sta		PF1
+
+
+	ldy		#7				;(2)
+	lda		(temp1LSB),y	;(5)	
+	sta		GRP0			;(3) = @47
+	lda		(temp2LSB),y	;(5)
+	sta		GRP1			;(3) = @55
+	lda		(temp3LSB),y	;(5)
+	sta		GRP0			;(3) = @63	
+	lda		(temp4LSB),y	;(5) = @68
+	tax						;(2) = @70
+
+	lda		#0
+	sta		PF1
+
+	lda		(temp5LSB),y	;(5) = @75
+	sta		tmpx			;(3) = @2
+	lda		(temp6LSB),y	;(5)
+	ldy		tmpx			;(3) = @10
+
+	nop
+	nop	;@25
+
+	;---- need to wait for the beam to clear the first sprite,
+	; which will be at pixel 76, clock 25
+	stx		GRP1			;(3)
+	sty		GRP0			;(3)
+	sta		GRP1			;(3)
+	stx		GRP0			;(3) @37
+
+
+	lda		black
+	sta		PF1
+
+
+	ldy		#8				;(2)
+	lda		(temp1LSB),y	;(5)	
+	sta		GRP0			;(3) = @47
+	lda		(temp2LSB),y	;(5)
+	sta		GRP1			;(3) = @55
+	lda		(temp3LSB),y	;(5)
+	sta		GRP0			;(3) = @63	
+	lda		(temp4LSB),y	;(5) = @68
+	tax						;(2) = @70
+
+	lda		#0
+	sta		PF1
+
+	lda		(temp5LSB),y	;(5) = @75
+	sta		tmpx			;(3) = @2
+	lda		(temp6LSB),y	;(5)
+	ldy		tmpx			;(3) = @10
+
+	nop
+	nop	;@25
+
+	;---- need to wait for the beam to clear the first sprite,
+	; which will be at pixel 76, clock 25
+	stx		GRP1			;(3)
+	sty		GRP0			;(3)
+	sta		GRP1			;(3)
+	stx		GRP0			;(3) @37
+
+
+	lda		black
+	sta		PF1
+
+
+	ldy		#9				;(2)
+	lda		(temp1LSB),y	;(5)	
+	sta		GRP0			;(3) = @47
+	lda		(temp2LSB),y	;(5)
+	sta		GRP1			;(3) = @55
+	lda		(temp3LSB),y	;(5)
+	sta		GRP0			;(3) = @63	
+	lda		(temp4LSB),y	;(5) = @68
+	tax						;(2) = @70
+
+	lda		#0
+	sta		PF1
+
+	lda		(temp5LSB),y	;(5) = @75
+	sta		tmpx			;(3) = @2
+	lda		(temp6LSB),y	;(5)
+	ldy		tmpx			;(3) = @10
+
+	nop
+	nop
+
+	;---- need to wait for the beam to clear the first sprite,
+	; which will be at pixel 76, clock 25
+	stx		GRP1			;(3)
+	sty		GRP0			;(3)
+	sta		GRP1			;(3)
+	stx		GRP0			;(3) @37
+
+
+	;---Clear VDELP and GRP registers before going on to game kernel
+	lda		#0
+	sta		VDELP0
+	sta		VDELP1
+	sta		GRP0
+	sta		GRP1
+	;---Also cleanup PF1
+	sta		PF1
+
+
+
+
+
+
+
+	lda		#ONE_COPY	;(2)
+	sta		NUSIZ0			;(3)
+	sta		NUSIZ1			;(3) = @13
+	lda		babyColor
+	sta		COLUP1
+	lda		#PLAYER_COLOR
+	sta		COLUP0
+
+
+;---Position the player and baby sprites for the rest of the game
 ;--Clear playfield
 	lda		#0
 	sta		PF2
@@ -1345,7 +1776,144 @@ DrawScreen
 ; ROM Tables
 ;------------------------------------------------
 	;***** ROM tables go here
-		;--Logo is 55*4 = 220 bytes, so give it its own page
+	
+	ORG $FC00 ;--Make sure these are all in the same page!	
+.one
+	.byte	%00000110
+	.byte	%00000110
+	.byte   %00000010
+	.byte	%00000011
+	.byte	%00000011
+	.byte	%00000011
+	.byte	%00000011
+	.byte   %00000011
+	.byte	%00000011
+	.byte	%00000011
+
+.two
+	.byte	%01111110
+	.byte	%01111110
+	.byte   %01100010
+	.byte	%00000011
+	.byte	%01111111
+	.byte	%01111111
+	.byte	%01100000
+	.byte   %00100011
+	.byte	%00111111
+	.byte	%00111111
+
+.three
+	.byte	%01111110
+	.byte	%01111110
+	.byte   %01100010
+	.byte	%00000011
+	.byte	%00011111
+	.byte	%00011111
+	.byte	%00000011
+	.byte   %00100011
+	.byte	%00111111
+	.byte	%00111111
+
+.four
+	.byte	%01100010
+	.byte	%01100010
+	.byte   %01100010
+	.byte	%01100011
+	.byte	%01111111
+	.byte	%01111111
+	.byte	%00000011
+	.byte   %00000011
+	.byte	%00000011
+	.byte	%00000011
+
+.five
+	.byte	%01111110
+	.byte	%01111110
+	.byte   %01100010
+	.byte	%01100000
+	.byte	%01111111
+	.byte	%01111111
+	.byte	%00000011
+	.byte   %00100011
+	.byte	%00111111
+	.byte	%00111111
+
+.six
+	.byte	%01111110
+	.byte	%01111110
+	.byte   %01100010
+	.byte	%01100000
+	.byte	%01111111
+	.byte	%01111111
+	.byte	%01100011
+	.byte   %00100011
+	.byte	%00111111
+	.byte	%00111111
+
+.seven
+	.byte	%01111110
+	.byte	%01111110
+	.byte   %01100010
+	.byte	%00000011
+	.byte	%00000011
+	.byte	%00000011
+	.byte	%00000011
+	.byte   %00000011
+	.byte	%00000011
+	.byte	%00000011
+
+.eight
+	.byte	%01111110
+	.byte	%01111110
+	.byte   %01100010
+	.byte	%01100011
+	.byte	%01111111
+	.byte	%01111111
+	.byte	%01100011
+	.byte   %00100011
+	.byte	%00111111
+	.byte	%00111111
+
+.nine
+	.byte	%01111110
+	.byte	%01111110
+	.byte   %01100010
+	.byte	%01100011
+	.byte	%01111111
+	.byte	%01111111
+	.byte	%00000011
+	.byte   %00100011
+	.byte	%00111111
+	.byte	%00111111
+
+	.byte	%00000000
+	.byte	%00000000
+.zero
+	.byte	%01111110
+	.byte	%01111110
+	.byte   %01100010
+	.byte	%01110011
+	.byte	%01111011
+	.byte	%01101111
+	.byte	%01100111
+	.byte   %00100011
+	.byte	%00111111
+	.byte	%00111111
+	.byte	%00000000
+	.byte	%00000000
+
+LSBS
+	.byte	.zero & $FF
+	.byte	.one & $FF
+	.byte	.two & $FF
+	.byte	.three & $FF
+	.byte	.four & $FF
+	.byte	.five & $FF
+	.byte	.six & $FF
+	.byte	.seven & $FF
+	.byte	.eight & $FF
+	.byte	.nine & $FF
+	
 	ORG $FD00
 Logo0
 	   .byte %10001010
@@ -1594,7 +2162,6 @@ Logo3
 	.byte HMOVE_M14          
 	.byte HMOVE_M15
 	
-	;ORG $FE00
 .song
 	.byte NOTE_D | NOTE_ATTACK
 	.byte NOTE_D
