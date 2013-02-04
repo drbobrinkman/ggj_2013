@@ -147,9 +147,9 @@ timeSpentWithBabySec .byte
 timeSpentWithBabyMin .byte
 timerTicks			.byte
 
-scorePF1	.byte
-scorePF2	.byte
-scoreColor  .byte
+;scorePF1	.byte
+;scorePF2	.byte
+;scoreColor  .byte
 madeMusic   .byte
 
 ;useless variable(?), but no time to remove it
@@ -467,7 +467,7 @@ RealStart
 	;Initialize colors		
 	lda		#PLAYER_COLOR ;Player color
 	sta		COLUP0
-	sta		scoreColor ;--Use player color for score color too
+	;sta		scoreColor ;--Use player color for score color too
 	
 	;Initialize player to center of the screen
 	lda		#76
@@ -508,8 +508,6 @@ RealStart
 	sta		timeSpentWithBabySec
 	sta		timeSpentWithBabyMin
 	sta		timerTicks
-	sta		scorePF1
-	sta		scorePF2
 	sta		madeMusic
 	sta		black
 	
@@ -929,16 +927,23 @@ MainLoop
 	lda		timerTicks
 	bne		.doneBGMask
 	lda		timeSpentWithBabySec
+	sed
+	clc
 	adc		#1
-	cmp		#60
+	sta		timeSpentWithBabySec
+	cmp		#$60
 	bne		.notBabyMinute
 	;;NOTE:Not handling overflow of minutes!
-	inc		timeSpentWithBabyMin	
+	lda		timeSpentWithBabyMin
+	sed
+	clc
+	adc		#1
+	sta		timeSpentWithBabyMin
 	lda		#0
 .notBabyMinute
 	sta		timeSpentWithBabySec
 .doneBGMask
-	
+	cld
 	
 	lda		score
 	cmp		#SCORE_FOR_SONG
@@ -957,56 +962,6 @@ MainLoop
 	sta		madeMusic
 .doneSongVol
 	
-	;Score color changes at each minute
-	lda		timeSpentWithBabyMin
-	asl
-	asl
-	asl
-	asl
-	and		#%11110000
-	ora		#$0A
-	sta		scoreColor
-	
-	;Color in 1 bar for each 4 seconds
-	lda		#%00000000
-	sta		scorePF2
-	sta		scorePF1
-	lda		timeSpentWithBabySec
-	adc		#4
-	lsr
-	;lsr
-	lsr
-	tay
-	lda		scorePF2
-.scoreCntLoop
-	dey
-	bmi		.scoreDone
-	lsr
-	bcc		.noPF1
-	inc		scorePF1
-.noPF1
-	ora		#%10000000
-	jmp		.scoreCntLoop
-.scoreDone	
-	sta		scorePF2
-	
-	lda		scorePF1
-	tay
-	lda		#0
-.scoreCntLoop2
-	dey
-	bmi		.scoreDone2
-	asl
-	ora		#%00000001
-	jmp		.scoreCntLoop2
-.scoreDone2	
-	sta		scorePF1
-	
-	;;seconds - 1s
-	ldx #0
-	lda LSBS,x  ;(4)
-	sta temp5LSB  ;(3) = 50
-
 	ldx #11	;--Blank
 	lda LSBS,x  ;(4) = 61
 	sta temp6LSB;(3) 
@@ -1014,19 +969,46 @@ MainLoop
 	ldx #10 ;--colon
 	lda LSBS,x  ;(4)
 	sta temp3LSB  ;(3) = @8
+	
+	
+	
+	;
+	; TODO - Computer score based on timeSpentWithBaby*
+	;
+	
+	;;seconds - 1s
+	lda	timeSpentWithBabySec
+	and #$0F
+	tax
+	lda LSBS,x  ;(4)
+	sta temp5LSB  ;(3) = 50
 
 	;;-seconds - 10s
-	ldx #3
+	lda	timeSpentWithBabySec
+	and #$F0
+	lsr
+	lsr
+	lsr
+	lsr
+	tax
 	lda LSBS,x  ;(4) = 19
 	sta temp4LSB;(3) = 22
 
 	;;minutes - 10s
-	ldx #4
+	lda	timeSpentWithBabyMin
+	and #$F0
+	lsr
+	lsr
+	lsr
+	lsr
+	tax
 	lda LSBS,x  ;(4)
 	sta temp1LSB  ;(3) = 42
 
 	;;minutes - 1s
-	ldx #5
+	lda	timeSpentWithBabyMin
+	and #$0F
+	tax
 	lda LSBS,x  ;(4) = 53
 	sta temp2LSB;(3) = 56
 	
