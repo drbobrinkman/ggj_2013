@@ -96,7 +96,7 @@ SCORE_FOR_SONG = 96
 
 PLAYER_COLOR = $8c
 BABY_COLOR = $6c
-SCORE_FG   = $6c
+SCORE_FG   = $4c
 SCORE_BG   = $00
 
 H_EDGE = 132
@@ -1002,27 +1002,30 @@ MainLoop
 .scoreDone2	
 	sta		scorePF1
 	
-	
+	;;seconds - 1s
 	ldx #0
 	lda LSBS,x  ;(4)
 	sta temp5LSB  ;(3) = 50
 
-	ldx #1
+	ldx #11	;--Blank
 	lda LSBS,x  ;(4) = 61
 	sta temp6LSB;(3) 
 
-	ldx #2
+	ldx #10 ;--colon
 	lda LSBS,x  ;(4)
 	sta temp3LSB  ;(3) = @8
 
+	;;-seconds - 10s
 	ldx #3
 	lda LSBS,x  ;(4) = 19
 	sta temp4LSB;(3) = 22
 
+	;;minutes - 10s
 	ldx #4
 	lda LSBS,x  ;(4)
 	sta temp1LSB  ;(3) = 42
 
+	;;minutes - 1s
 	ldx #5
 	lda LSBS,x  ;(4) = 53
 	sta temp2LSB;(3) = 56
@@ -1778,6 +1781,28 @@ DrawScreen
 	;***** ROM tables go here
 	
 	ORG $FC00 ;--Make sure these are all in the same page!	
+.empty
+	.byte	%00000000
+	.byte	%00000000
+	.byte   %00000000
+	.byte	%00000000
+	.byte	%00000000
+	.byte	%00000000
+	.byte	%00000000
+	.byte   %00000000
+	.byte	%00000000
+	.byte	%00000000
+.colon
+	.byte	%00000000
+	.byte	%00000000
+	.byte   %00011100
+	.byte	%00011100
+	.byte	%00000000
+	.byte	%00000000
+	.byte	%00011100
+	.byte   %00011100
+	.byte	%00000000
+	.byte	%00000000
 .one
 	.byte	%00000110
 	.byte	%00000110
@@ -1913,6 +1938,8 @@ LSBS
 	.byte	.seven & $FF
 	.byte	.eight & $FF
 	.byte	.nine & $FF
+	.byte   .colon & $FF
+	.byte	.empty & $FF
 	
 	ORG $FD00
 Logo0
